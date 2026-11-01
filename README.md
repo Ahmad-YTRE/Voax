@@ -2,32 +2,40 @@
 
 **A lightweight place to chat, chill, and have fun.**
 
-Voax is a real-time chat platform for friends and gaming communities. Organize conversations, build communities with servers and channels, and keep in touch through direct messages.
+Voax is a real-time chat platform for friends, gaming groups, and online communities. Chat privately, organize communities with servers and channels, and personalize the way you connect.
 
-**Live app:** https://voax.vercel.app  
-**Repository:** https://github.com/Ahmad-YTRE/Voax 
-
-**Main Repository:** https://github.com/Shahadah-Studs/Voax
+- **Live app:** https://voax.vercel.app
+- **User guide:** https://voax.vercel.app/docs
+- **Repository:** https://github.com/Ahmad-YTRE/Voax
+- **Upstream project:** https://github.com/Shahadah-Studs/Voax
 
 ## Features
 
-- **Accounts and profiles** — Sign up and sign in, with profile details and avatars.
-- **Direct messages** — Chat privately with friends.
-- **Servers and channels** — Organize community conversations by server and channel.
-- **Friends** — Connect with other users and manage friend requests.
-- **Real-time messaging** — Keep conversations up to date with Supabase Realtime.
-- **Message reactions** — React to messages in conversations.
-- **Attachments** — Share message attachments.
-- **Presence and status** — See user presence and status information.
-- **Roles and permissions** — Organize server members with server roles.
-- **Invites** — Share server invite links to help others join.
-- **Notifications** — Configure notification preferences and server/channel overrides.
-- **Themes and appearance** — Personalize the interface.
-- **Documentation** — A user guide is available in the app at `/docs`.
-- **Progressive Web App (PWA)** — Install Voax on supported desktop and mobile devices.
-- **Responsive interface** — Designed to work across different screen sizes.
+### Communication
+- **Direct messages** — Have private conversations with friends.
+- **Servers and channels** — Organize communities and topic-based conversations.
+- **Real-time updates** — Keep messages and presence up to date with Supabase Realtime.
+- **Message tools** — Reply to messages, edit your own messages, delete messages when permitted, and copy message text.
+- **Reactions and attachments** — React with emoji and share supported files.
+- **Link previews** — Display rich previews for supported websites.
 
-> Feature availability may depend on the current app version and account permissions.
+### Communities
+- **Friends** — Send and manage friend requests, start DMs, and remove friends.
+- **Profiles and presence** — Customize your profile and share your availability status.
+- **Custom server roles** — Create roles, assign them to members, and configure permissions.
+- **Role hierarchy** — Restrict role and member management to actors with sufficient authority; the server creator retains top-level authority.
+- **Invites** — Share invite links and codes to help people join servers.
+- **Channel access controls** — Manage access to channels through available permissions.
+
+### Personalization and safety
+- **Notifications** — Configure notification preferences and server/channel overrides.
+- **Appearance** — Choose supported themes and a 12-hour or 24-hour clock.
+- **Account safety** — Block accounts, mute member alerts, and report accounts, messages, or servers.
+- **Progressive Web App** — Install Voax on supported desktop and mobile browsers.
+- **Responsive interface** — Use Voax across different screen sizes.
+- **Documentation** — Read the in-app guide at [voax.vercel.app/docs](https://voax.vercel.app/docs).
+
+> Available actions depend on the current app version, the selected space, and your account's permissions.
 
 ## Tech stack
 
@@ -40,24 +48,13 @@ Voax is a real-time chat platform for friends and gaming communities. Organize c
 | [Supabase JavaScript client](https://supabase.com/docs/reference/javascript/introduction) | Client-side communication with Supabase |
 | [Vercel](https://vercel.com/) | Hosting and deployments |
 
-## Latest updates
-
-**October 29, 2026**
-
-- Reduced repeated Supabase profile reads with a short-lived in-memory cache.
-- Consolidated server and channel notification-override reads into one scoped query.
-- Fixed DM profile lookup fallback so non-UUID public IDs do not trigger invalid UUID lookups.
-- Batched signed URL creation for message attachments to reduce per-message Storage requests.
-- Avoided unnecessary message reloads and realtime resubscriptions when unrelated workspace data refreshes.
-
-These optimizations aim to reduce unnecessary requests while preserving the existing live database, access controls, and realtime presence flow. The profile cache may keep profile details in memory for up to 30 seconds.
-
 ## Getting started
 
 ### Requirements
 
-- Node.js and npm
-- A Supabase project with the database schema and environment configuration expected by the app
+- Node.js
+- npm
+- A Supabase project configured with the database schema and services required by the application
 
 ### Install dependencies
 
@@ -65,9 +62,16 @@ These optimizations aim to reduce unnecessary requests while preserving the exis
 npm install
 ```
 
-### Configure environment
+### Configure environment variables
 
-Create a local `.env` file and provide the Supabase environment variables required by the app. Check the application's Supabase client setup for the exact variable names. **Never commit secret keys or service-role credentials.**
+Create a `.env` file in the project root and configure:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+```
+
+Use your own Supabase project values. The publishable key is intended for client-side use; never put a Supabase service-role key, database password, or other server secret in a Vite `VITE_*` variable or commit it to the repository. Review the project's Supabase setup and migrations so your database has the schema and policies expected by the app.
 
 ### Run locally
 
@@ -75,24 +79,25 @@ Create a local `.env` file and provide the Supabase environment variables requir
 npm run dev
 ```
 
-### Build for production
+### Build and preview
 
 ```bash
 npm run build
 npm run preview
 ```
 
+The production build runs the TypeScript project build before Vite creates the deployable assets.
+
 ## Deployment
 
-The app is configured for Vercel deployment. Production deployments are triggered from the repository's connected Git branch.
+Voax is configured for Vercel. Connect the repository and configure the Supabase environment variables in the Vercel project settings for each required environment. Production deployments are created from the configured production branch.
 
 ## Contributing and bug reports
 
-Found a bug or have an idea? Open an issue in the [GitHub repository](https://github.com/Shahadah-studs/Voax) with steps to reproduce the problem and any relevant details. Please do not include passwords, access tokens, or other secrets.
+Found a bug or have an idea? [Open an issue in this repository](https://github.com/Ahmad-YTRE/Voax/issues) with clear steps to reproduce it and any relevant details. Do not include passwords, access tokens, private invite links, or other secrets.
 
 ---
 
 Made for friends, teams, and communities. **Chat. Chill. Have Fun.**
----
 
-**&copy; Shahadah Studios Elite and BloxdLabs**
+**© Shahadah Studios Elite and BloxdLabs**
