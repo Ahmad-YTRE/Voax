@@ -1057,7 +1057,9 @@ function App({ session }: { session: Session }) {
   },[active,activeKey,view,session.user.id,activeConversationId,activePerson?.id,activeChannel?.channelType]);
 
   useEffect(()=>{
-    const channel=supabase.channel("voax-presence",{config:{presence:{key:presenceSessionKeyRef.current.key}}});
+    const presenceKey=presenceSessionKeyRef.current?.key;
+    if(!presenceKey)return;
+    const channel=supabase.channel("voax-presence",{config:{presence:{key:presenceKey}}});
     const sync=()=>{
       const state=channel.presenceState() as Record<string,Array<{userId?:string;status?:PresenceStatus;serverIds?:string[]}>>;
       const sessionsByUser:Record<string,PresenceStatus[]>={};
