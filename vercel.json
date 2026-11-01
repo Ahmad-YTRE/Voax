@@ -1,61 +1,49 @@
 {
   "cleanUrls": true,
-  "rewrites": [
+  "headers": [
     {
       "source": "/admin/:path*",
-      "destination": "/"
-    },
-    {
-      "source": "/admin",
-      "destination": "/"
-    },
-    {
-      "source": "/explore/:path*",
-      "destination": "/"
-    },
-    {
-      "source": "/explore",
-      "destination": "/"
-    },
-    {
-      "source": "/docs",
-      "destination": "/"
-    },
-    {
-      "source": "/docs/:path*",
-      "destination": "/"
-    },
-    {
-      "source": "/app",
-      "destination": "/"
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
     },
     {
       "source": "/app/:path*",
-      "destination": "/"
-    },
-    {
-      "source": "/dms",
-      "destination": "/"
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
     },
     {
       "source": "/dms/:path*",
-      "destination": "/"
-    },
-    {
-      "source": "/channel/:path*",
-      "destination": "/"
-    },
-    {
-      "source": "/channels/:path*",
-      "destination": "/"
-    },
-    {
-      "source": "/invite/:path*",
-      "destination": "/"
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
     },
     {
       "source": "/dm/:path*",
-      "destination": "/"
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+    },
+    {
+      "source": "/channel/:path*",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+    },
+    {
+      "source": "/channels/:path*",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+    },
+    {
+      "source": "/invite/:path*",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
     }
+  ],
+  "rewrites": [
+    { "source": "/admin/:path*", "destination": "/" },
+    { "source": "/admin", "destination": "/" },
+    { "source": "/explore/:path*", "destination": "/" },
+    { "source": "/explore", "destination": "/" },
+    { "source": "/docs", "destination": "/" },
+    { "source": "/docs/:path*", "destination": "/" },
+    { "source": "/app", "destination": "/" },
+    { "source": "/app/:path*", "destination": "/" },
+    { "source": "/dms", "destination": "/" },
+    { "source": "/dms/:path*", "destination": "/" },
+    { "source": "/channel/:path*", "destination": "/" },
+    { "source": "/channels/:path*", "destination": "/" },
+    { "source": "/invite/:path*", "destination": "/" },
+    { "source": "/dm/:path*", "destination": "/" }
   ]
 }
