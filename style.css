@@ -3948,3 +3948,7 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .server-order-move-buttons button:hover:not(:disabled){border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 10%,var(--panel));color:var(--text)}
 .server-order-move-buttons button:disabled{opacity:.32;cursor:not-allowed}
 @media(max-width:650px){.server-order-row{padding-inline:10px}.server-order-move-buttons button{width:28px;height:28px}}
+
+
+.message-edited-label{color:var(--muted,#8b95a7);font-size:11px;font-weight:500;margin-left:5px;white-space:nowrap}
+.composer-editing{outline:1px solid var(--accent,#5865f2);outline-offset:2px;border-radius:10px}
