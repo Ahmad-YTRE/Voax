@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#00008B" />
     <meta name="description" content="Voax is your space to chat, build communities, and stay connected with friends." />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://voax-two.vercel.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Voax" />
+    <meta property="og:title" content="Voax" />
+    <meta property="og:description" content="Voax is your space to chat, build communities, and stay connected with friends." />
+    <meta property="og:url" content="https://voax-two.vercel.app/" />
+    <meta property="og:image" content="https://voax-two.vercel.app/logo.svg" />
+    <meta property="og:image:alt" content="Voax logo" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Voax" />
+    <meta name="twitter:description" content="Voax is your space to chat, build communities, and stay connected with friends." />
+    <meta name="twitter:image" content="https://voax-two.vercel.app/logo.svg" />
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%logo.svg" />
     <link rel="apple-touch-icon" href="%BASE_URL%logo.svg" />
     <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
@@ -12,6 +25,40 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Voax" />
+    <script>
+      (() => {
+        const origin = "https://voax-two.vercel.app";
+        const path = window.location.pathname.replace(/\\/+$/, "") || "/";
+        const canonical = origin + path;
+        const link = document.querySelector('link[rel="canonical"]');
+        const ogUrl = document.querySelector('meta[property="og:url"]');
+        if (link) link.href = canonical;
+        if (ogUrl) ogUrl.content = canonical;
+      })();
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://voax-two.vercel.app/#website",
+            "url": "https://voax-two.vercel.app/",
+            "name": "Voax",
+            "description": "Voax is your space to chat, build communities, and stay connected with friends."
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://voax-two.vercel.app/#application",
+            "name": "Voax",
+            "url": "https://voax-two.vercel.app/",
+            "applicationCategory": "SocialNetworkingApplication",
+            "operatingSystem": "Web",
+            "description": "A community chat app for chatting, building communities, and staying connected with friends."
+          }
+        ]
+      }
+    </script>
     <title>Voax</title>
   </head>
   <body>
