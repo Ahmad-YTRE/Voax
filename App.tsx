@@ -780,12 +780,12 @@ function App({ session }: { session: Session }) {
   const typingTimeoutRef = useRef<number | null>(null);
   // Each tab/device needs its own Supabase Presence key. Sharing the user ID
   // makes concurrent sessions overwrite one another's presence metadata.
-  const presenceSessionKeyRef = useRef("");
-  if (!presenceSessionKeyRef.current) {
+  const presenceSessionKeyRef = useRef<{ userId: string; key: string } | null>(null);
+  if (!presenceSessionKeyRef.current || presenceSessionKeyRef.current.userId !== session.user.id) {
     const sessionToken = typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
       : Math.random().toString(36).slice(2) + Date.now().toString(36);
-    presenceSessionKeyRef.current = session.user.id + ":" + sessionToken;
+    presenceSessionKeyRef.current = { userId: session.user.id, key: session.user.id + ":" + sessionToken };
   }
 
   useEffect(() => {
@@ -1057,7 +1057,7 @@ function App({ session }: { session: Session }) {
   },[active,activeKey,view,session.user.id,activeConversationId,activePerson?.id,activeChannel?.channelType]);
 
   useEffect(()=>{
-    const channel=supabase.channel("voax-presence",{config:{presence:{key:presenceSessionKeyRef.current}}});
+    const channel=supabase.channel("voax-presence",{config:{presence:{key:presenceSessionKeyRef.current.key}}});
     const sync=()=>{
       const state=channel.presenceState() as Record<string,Array<{userId?:string;status?:PresenceStatus;serverIds?:string[]}>>;
       const sessionsByUser:Record<string,PresenceStatus[]>={};
