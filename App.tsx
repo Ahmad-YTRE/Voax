@@ -1064,6 +1064,20 @@ function App({ session }: { session: Session }) {
     return()=>{cancelled=true;void supabase.removeChannel(channel);};
   },[session.user.id,view,activeConversationId]);
   useEffect(()=>{const channel=supabase.channel("voax-channel-unread-"+session.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{const row=payload.new as {id:string;channel_id:string|null;author_id:string;created_at:string};if(!row.channel_id||row.author_id===session.user.id||(viewRef.current==="channel"&&activeRef.current===row.channel_id))return;const key=keyFor("channel",row.channel_id);setUnread(old=>({...old,[key]:(old[key]||0)+1}));}).subscribe();return()=>{void supabase.removeChannel(channel);};},[session.user.id]);
+  useEffect(()=>{
+    const channel=supabase.channel("voax-dm-activity-"+session.user.id)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{
+        const row=payload.new as {conversation_id:string|null;channel_id:string|null;author_id:string;created_at:string;body:string};
+        if(!row.conversation_id||row.channel_id||row.author_id===session.user.id)return;
+        const personId=Object.keys(conversationIds).find(id=>conversationIds[id]===row.conversation_id);
+        if(!personId)return;
+        const activityAt=new Date(row.created_at).getTime();
+        setDmActivity(old=>({...old,[personId]:Math.max(old[personId]||0,activityAt)}));
+        setPeople(old=>old.map(person=>person.id===personId?{...person,hasConversation:true,preview:row.body||"Shared an attachment"}:person));
+      }).subscribe();
+    return()=>{void supabase.removeChannel(channel);};
+  },[session.user.id,conversationIds]);
+
 
   useEffect(()=>{
     if((view!=="channel"&&view!=="dm")||messagesLoading)return;
