@@ -778,6 +778,15 @@ function App({ session }: { session: Session }) {
   const nameRef = useRef(name);
   const currentMessageIdsRef = useRef<string[]>([]);
   const typingTimeoutRef = useRef<number | null>(null);
+  // Each tab/device needs its own Supabase Presence key. Sharing the user ID
+  // makes concurrent sessions overwrite one another's presence metadata.
+  const presenceSessionKeyRef = useRef("");
+  if (!presenceSessionKeyRef.current) {
+    const sessionToken = typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2) + Date.now().toString(36);
+    presenceSessionKeyRef.current = session.user.id + ":" + sessionToken;
+  }
 
   useEffect(() => {
     try { localStorage.setItem(KEY, JSON.stringify({ compact })); } catch { /* browser storage may be disabled */ }
@@ -1048,9 +1057,39 @@ function App({ session }: { session: Session }) {
   },[active,activeKey,view,session.user.id,activeConversationId,activePerson?.id,activeChannel?.channelType]);
 
   useEffect(()=>{
-    const channel=supabase.channel("voax-presence",{config:{presence:{key:session.user.id}}});
-    const sync=()=>{const state=channel.presenceState() as Record<string,Array<{userId?:string;status?:PresenceStatus;serverIds?:string[]}>>;const next:Record<string,PresenceStatus>={};const byServer:Record<string,Set<string>>={};for(const entries of Object.values(state))for(const entry of entries){if(!entry.userId)continue;const currentStatus=entry.status||"Online";next[entry.userId]=currentStatus;if(currentStatus!=="Offline")for(const serverId of entry.serverIds||[])(byServer[serverId]||=new Set()).add(entry.userId);}setPresenceByUser(next);const counts:Record<string,number>={};for(const [serverId,users] of Object.entries(byServer))counts[serverId]=users.size;setPresenceByServer(counts);};
-    channel.on("presence",{event:"sync"},sync).subscribe(async state=>{if(state==="SUBSCRIBED"){if(status==="Offline")await channel.untrack();else await channel.track({userId:session.user.id,status,online_at:new Date().toISOString(),serverIds:discoverableServerIds});sync();}});
+    const channel=supabase.channel("voax-presence",{config:{presence:{key:presenceSessionKeyRef.current}}});
+    const sync=()=>{
+      const state=channel.presenceState() as Record<string,Array<{userId?:string;status?:PresenceStatus;serverIds?:string[]}>>;
+      const sessionsByUser:Record<string,PresenceStatus[]>={};
+      const serverUsers:Record<string,Set<string>>={};
+      // Aggregate every tab/device session. A single offline or stale tab must
+      // never override another live session belonging to the same account.
+      for(const entries of Object.values(state))for(const entry of entries){
+        if(!entry.userId)continue;
+        const currentStatus=entry.status||"Online";
+        (sessionsByUser[entry.userId]||=[]).push(currentStatus);
+        if(currentStatus!=="Offline")for(const serverId of entry.serverIds||[]){
+          (serverUsers[serverId]||=new Set()).add(entry.userId);
+        }
+      }
+      const next:Record<string,PresenceStatus>={};
+      for(const [userId,sessions] of Object.entries(sessionsByUser)){
+        // Online wins over Idle, which wins over Do not disturb when sessions
+        // on the same account have different status selections.
+        next[userId]=sessions.includes("Online")?"Online":sessions.includes("Idle")?"Idle":sessions.includes("Do not disturb")?"Do not disturb":"Offline";
+      }
+      setPresenceByUser(next);
+      const counts:Record<string,number>={};
+      for(const [serverId,users] of Object.entries(serverUsers))counts[serverId]=users.size;
+      setPresenceByServer(counts);
+    };
+    channel.on("presence",{event:"sync"},sync).subscribe(async state=>{
+      if(state==="SUBSCRIBED"){
+        if(status==="Offline")await channel.untrack();
+        else await channel.track({userId:session.user.id,status,online_at:new Date().toISOString(),serverIds:discoverableServerIds});
+        sync();
+      }
+    });
     return()=>{void channel.untrack();void supabase.removeChannel(channel);};
   },[session.user.id,status,discoverableServerIds]);
   useEffect(()=>{setPeople(old=>old.map(person=>({...person,online:Boolean(presenceByUser[person.id]&&presenceByUser[person.id]!=="Offline"),status:presenceByUser[person.id]||"Offline"})));},[presenceByUser]);
@@ -1450,7 +1489,7 @@ function App({ session }: { session: Session }) {
     for(const row of channelRows){const name=row.category||"Text Channels",key=row.server_id+":"+name;if(!categoriesByServerAndName.has(key))categoriesByServerAndName.set(key,{id:row.category_id||undefined,serverId:row.server_id,name,position:Number.MAX_SAFE_INTEGER});}
     setChannelCategories([...categoriesByServerAndName.values()]);
     if(channelRows.length)setUnread(old=>({...old,...unreadByChannel}));
-    setPeople(profiles.map((p,i)=>({id:p.id,...(p.public_id?{publicId:p.public_id}:{}),name:p.username||"Player",status:presenceByUser[p.id]||(p.status||"Offline") as PresenceStatus,online:Boolean(presenceByUser[p.id]&&presenceByUser[p.id]!=="Offline"),color:colors[i%colors.length],preview:"",avatarUrl:p.avatar_url||null,bio:p.bio||null,isFriend:friendIds.has(p.id),hasConversation:Boolean(convMap[p.id])})));
+    setPeople(profiles.map((p,i)=>{const liveStatus=presenceByUser[p.id]||"Offline";return{id:p.id,...(p.public_id?{publicId:p.public_id}:{}),name:p.username||"Player",status:liveStatus as PresenceStatus,online:liveStatus!=="Offline",color:colors[i%colors.length],preview:"",avatarUrl:p.avatar_url||null,bio:p.bio||null,isFriend:friendIds.has(p.id),hasConversation:Boolean(convMap[p.id])};}));
     setConversationIds(convMap);
     setActiveServer(prev=>serverIds.includes(prev)?prev:(serverRows[0]?.id||""));
     setActive(prev=>(view==="dm"||view==="home"||view==="friends")?prev:(channelRows.some(row=>row.id===prev)?prev:(channelRows[0]?.id||"")));
