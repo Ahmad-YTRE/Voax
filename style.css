@@ -4089,3 +4089,25 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   .app-shell{padding-bottom:calc(60px + env(safe-area-inset-bottom))}
   .sidebar.sidebar-open{bottom:calc(60px + env(safe-area-inset-bottom))}
 }
+
+
+/* Mobile members drawer: keep the member list discoverable without taking chat space */
+@media(max-width:650px){
+  .mobile-member-backdrop{
+    display:block;position:fixed;z-index:39;inset:calc(58px + env(safe-area-inset-top)) 0 calc(64px + env(safe-area-inset-bottom));
+    width:100%;height:auto;padding:0;border:0;border-radius:0;background:rgba(0,0,0,.48);
+    cursor:pointer;touch-action:manipulation
+  }
+  .member-panel{
+    display:flex!important;position:fixed!important;z-index:40;
+    top:calc(58px + env(safe-area-inset-top));right:0;bottom:calc(64px + env(safe-area-inset-bottom));
+    left:auto!important;width:min(340px,88vw);max-width:88vw;height:auto!important;max-height:none!important;
+    overflow-y:auto;overscroll-behavior:contain;
+    border-left:1px solid var(--border);box-shadow:-18px 0 48px rgba(0,0,0,.42);
+    background:var(--panel, #10141d);padding-bottom:12px
+  }
+}
+@media(max-width:380px){
+  .mobile-member-backdrop{bottom:calc(60px + env(safe-area-inset-bottom))}
+  .member-panel{bottom:calc(60px + env(safe-area-inset-bottom))}
+}
