@@ -48,7 +48,6 @@ const DEFAULT_PANEL: TicketPanel = {
 export function TicketPanelView({
   channelId,
   serverId,
-  currentUserId,
   canManage,
   roles,
   onNotify,
@@ -56,7 +55,6 @@ export function TicketPanelView({
 }: {
   channelId: string;
   serverId: string;
-  currentUserId: string;
   canManage: boolean;
   roles: TicketRole[];
   onNotify: (message: string) => void;
