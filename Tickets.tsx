@@ -269,7 +269,8 @@ export function TicketChannelHeader({
       onNotify("Couldn't " + action.replace("_", " ") + " ticket: " + error.message);
       return;
     }
-    onNotify(action === "close" ? "Ticket archived." : action === "reopen" ? "Ticket reopened." : action === "claim" ? "Ticket claimed." : "Ticket updated.");
+    onNotify(action === "close" ? "Ticket archived." : action === "reopen" ? "Ticket reopened." : action === "claim" ? "Ticket claimed." : action === "delete" ? "Ticket permanently deleted." : "Ticket updated.");
+    if (action === "delete") { setTicket(null); await onChanged(); return; }
     await loadTicket();
     await onChanged();
   };
@@ -303,6 +304,7 @@ export function TicketChannelHeader({
       {ticket.status !== "archived" && canClose && <button type="button" className="btn small secondary" disabled={busy} onClick={() => void runAction("close")}><Icon name="archive" size={14}/> Close ticket</button>}
       {ticket.status === "archived" && isSupport && <button type="button" className="btn small primary" disabled={busy} onClick={() => void runAction("reopen")}><Icon name="refresh-cw" size={14}/> Reopen</button>}
       {ticket.status === "archived" && hasTranscript && <button type="button" className="btn small secondary" onClick={() => void downloadTranscript()}><Icon name="file-text" size={14}/> Transcript</button>}
+      {canManageServer && <button type="button" className="btn small danger" disabled={busy} onClick={() => { if (window.confirm("Permanently delete this ticket and its messages? This cannot be undone.")) void runAction("delete"); }}><Icon name="trash-2" size={14}/> Delete</button>}
       {ticket.status !== "archived" && isSupport && <div className="ticket-add-member"><select aria-label="Choose a member to add" value={selectedMember} onChange={event => setSelectedMember(event.target.value)}><option value="">Add member…</option>{availableMembers.map(member => <option key={member.id} value={member.id}>{member.name}</option>)}</select><button type="button" className="btn small secondary" disabled={!selectedMember || busy} onClick={() => { const id = selectedMember; setSelectedMember(""); void runAction("add_member", id); }}>Add</button></div>}
     </div>
     {ticketMembers.length > 0 && <div className="ticket-participants"><span>Additional members</span>{ticketMembers.map(member => <span className="ticket-participant" key={member.id}>{member.name}{isSupport && ticket.status !== "archived" && <button type="button" aria-label={"Remove " + member.name} title={"Remove " + member.name} disabled={busy} onClick={() => void runAction("remove_member", member.id)}>×</button>}</span>)}</div>}
