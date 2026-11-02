@@ -750,7 +750,7 @@ function App({ session }: { session: Session }) {
   const [serverMentionCounts, setServerMentionCounts] = useState<Record<string, number>>({});
   const [typingPerson, setTypingPerson] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showMembers, setShowMembers] = useState(true);
+  const [showMembers, setShowMembers] = useState(() => !window.matchMedia("(max-width: 650px)").matches);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [filter, setFilter] = useState<"all" | "online">("all");
   const [microphoneEnabled, setMicrophoneEnabled] = useState(true);
@@ -2197,6 +2197,7 @@ function App({ session }: { session: Session }) {
     </main>
 
     {mediaViewer && mediaViewer.items[mediaViewer.index] && <div className="media-viewer-backdrop" role="presentation" onClick={()=>setMediaViewer(null)}><div className="media-viewer-dialog" role="dialog" aria-modal="true" aria-label="Media viewer" onClick={event=>event.stopPropagation()}><div className="media-viewer-toolbar"><span className="media-viewer-filename">{mediaViewer.items[mediaViewer.index].name}</span><span className="media-viewer-count">{mediaViewer.index+1} / {mediaViewer.items.length}</span><button type="button" className="media-viewer-close" onClick={()=>setMediaViewer(null)} aria-label="Close viewer"><Icon name="close" size={21}/></button></div><div className="media-viewer-stage">{mediaViewer.items[mediaViewer.index].mimeType.startsWith("video/")?<video key={mediaViewer.items[mediaViewer.index].path} src={mediaViewer.items[mediaViewer.index].url} controls autoPlay playsInline/>:<img src={mediaViewer.items[mediaViewer.index].url} alt={mediaViewer.items[mediaViewer.index].name}/>}</div>{mediaViewer.items.length>1&&<><button type="button" className="media-viewer-nav media-viewer-prev" onClick={()=>setMediaViewer(current=>current?{...current,index:(current.index-1+current.items.length)%current.items.length}:current)} aria-label="Previous media"><Icon name="chevron-left" size={25}/></button><button type="button" className="media-viewer-nav media-viewer-next" onClick={()=>setMediaViewer(current=>current?{...current,index:(current.index+1)%current.items.length}:current)} aria-label="Next media"><Icon name="chevron-right" size={25}/></button></>}</div></div>}
+    {showMembers && view === "channel" && <button type="button" className="mobile-member-backdrop" aria-label="Close members list" onClick={() => setShowMembers(false)} />}
     {showMembers && view === "channel" && <aside className="member-panel" aria-label="Channel members">
       <div className="member-panel-head"><div><strong>Members</strong><span>{visibleChannelOnlineCount} online · {visibleChannelMemberPeople.length + 1} members</span></div></div>
       {(() => {
