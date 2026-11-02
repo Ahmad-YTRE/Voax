@@ -4091,6 +4091,9 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 }
 
 
+/* The mobile backdrop must not occupy a desktop CSS-grid cell. */
+.mobile-member-backdrop{display:none}
+
 /* Mobile members drawer: keep the member list discoverable without taking chat space */
 @media(max-width:650px){
   .mobile-member-backdrop{
