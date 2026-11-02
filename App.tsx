@@ -1713,12 +1713,13 @@ function App({ session }: { session: Session }) {
     if(!match){setMentionMenu(null);return;}
     const query=match[1].toLocaleLowerCase();
     const start=value.length-match[1].length-1;
+    const isTicketChannel=activeChannel?.channelType==="ticket";
+    const mentionableMembers=isTicketChannel?visibleChannelMemberPeople:serverMemberPeople;
     const options:MentionSuggestion[]=view==="channel"
       ? [
-          {type:"everyone",label:"everyone",detail:"Mention everyone in this server"},
-          {type:"here",label:"here",detail:"Mention members who are Online or Idle"},
-          ...serverMemberPeople.filter(person=>person.name&&person.name!=="Player"&&person.id!==session.user.id).map(person=>({type:"user" as const,id:person.id,label:person.name,detail:"Member"})),
-          ...customServerRoles.map(role=>({type:"role" as const,id:role.id,label:role.name,detail:"Role mention"}))
+          ...(!isTicketChannel?[{type:"everyone" as const,label:"everyone",detail:"Mention everyone in this server"},{type:"here" as const,label:"here",detail:"Mention members who are Online or Idle"}]:[]),
+          ...mentionableMembers.filter(person=>person.name&&person.name!=="Player"&&person.id!==session.user.id).map(person=>({type:"user" as const,id:person.id,label:person.name,detail:"Member"})),
+          ...(!isTicketChannel?customServerRoles.map(role=>({type:"role" as const,id:role.id,label:role.name,detail:"Role mention"})):[])
         ]
       : activePerson
         ? [{type:"user",id:activePerson.id,label:activePerson.name,detail:"Direct message"}]
@@ -1767,7 +1768,7 @@ function App({ session }: { session: Session }) {
     const attachmentRows=pendingAttachments.map(({path,name,mimeType,size})=>({path,name,mimeType,size}));
     const mentionMembers:Person[]=[...serverMemberPeople,{id:session.user.id,name,online:status!=="Offline",status,color:"blue",preview:"You"}];
     const dmMentionMembers:Person[] = activePerson ? [activePerson] : [];
-     const mentions=buildMentionTokens(body,view==="channel"?mentionMembers:dmMentionMembers,view==="channel"?customServerRoles:[]);
+     const mentions=buildMentionTokens(body,view==="channel"?mentionMembers:dmMentionMembers,view==="channel"&&activeChannel?.channelType!=="ticket"?customServerRoles:[]);
     const send=(confirmed:boolean)=>supabase.rpc("send_message_with_pings",{p_channel_id:view==="channel"?active:null,p_conversation_id:view==="dm"?conversationId:null,p_body:body||"Shared an attachment",p_attachments:attachmentRows,p_reply_to:replyingTo?.id||null,p_mentions:mentions,p_confirmed:confirmed});
     let result=await send(false);
     if(result.error){notify("Message not sent: "+result.error.message);return;}
