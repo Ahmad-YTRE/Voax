@@ -11,6 +11,8 @@ type TicketPanel = {
   description: string;
   button_label: string;
   welcome_message: string;
+  embed_color: string;
+  image_url: string | null;
   categories: string[];
   support_role_ids: string[];
   allow_user_close: boolean;
@@ -38,6 +40,8 @@ const DEFAULT_PANEL: TicketPanel = {
   description: "Need help? Create a private ticket and our team will assist you.",
   button_label: "Create Ticket",
   welcome_message: "Please describe your issue. A support team member will be with you shortly.",
+  embed_color: "#5865F2",
+  image_url: null,
   categories: ["General", "Technical Support", "Report a User"],
   support_role_ids: [],
   allow_user_close: true,
@@ -116,6 +120,8 @@ export function TicketPanelView({
       p_description: panel.description,
       p_button_label: panel.button_label,
       p_welcome_message: panel.welcome_message,
+      p_embed_color: panel.embed_color,
+      p_image_url: panel.image_url,
       p_categories: nextCategories,
       p_support_role_ids: panel.support_role_ids,
       p_allow_user_close: panel.allow_user_close,
@@ -135,7 +141,8 @@ export function TicketPanelView({
   if (loading) return <section className="ticket-panel-view"><div className="ticket-loading">Loading ticket panel…</div></section>;
 
   return <section className="ticket-panel-view">
-    <div className="ticket-panel-card">
+    <div className="ticket-panel-card" style={{ "--ticket-panel-accent": panel.embed_color } as React.CSSProperties}>
+      {panel.image_url && <img className="ticket-panel-banner" src={panel.image_url} alt="" loading="lazy"/>}
       <div className="ticket-panel-eyebrow"><Icon name="life-buoy" size={15}/> VOAX SUPPORT</div>
       <div className="ticket-panel-heading">
         <div className="ticket-panel-art"><Icon name="ticket" size={30}/></div>
@@ -163,6 +170,8 @@ export function TicketPanelView({
         <label>Description<textarea rows={2} maxLength={500} value={panel.description} onChange={event => setPanel(current => ({ ...current, description: event.target.value }))}/></label>
         <label>Button label<input value={panel.button_label} maxLength={40} onChange={event => setPanel(current => ({ ...current, button_label: event.target.value }))}/></label>
         <label>Welcome message<textarea rows={3} maxLength={2000} value={panel.welcome_message} onChange={event => setPanel(current => ({ ...current, welcome_message: event.target.value }))}/></label>
+        <label>Panel accent color<input type="color" value={panel.embed_color} onChange={event => setPanel(current => ({ ...current, embed_color: event.target.value }))}/></label>
+        <label>Panel image URL<input type="url" value={panel.image_url || ""} maxLength={1000} onChange={event => setPanel(current => ({ ...current, image_url: event.target.value || null }))} placeholder="https://example.com/support-banner.png"/></label>
         <label>Ticket categories <small>One category per line, up to 12.</small><textarea rows={4} value={categoriesText} onChange={event => setCategoriesText(event.target.value)} placeholder={"General\nTechnical Support\nReport a User"}/></label>
         <div className="ticket-panel-role-settings"><strong>Support roles</strong><small>Members with these roles can see, claim, and manage tickets.</small>
           {roles.length ? roles.map(role => <label key={role.id}><input type="checkbox" checked={panel.support_role_ids.includes(role.id)} onChange={event => setPanel(current => ({ ...current, support_role_ids: event.target.checked ? [...current.support_role_ids, role.id] : current.support_role_ids.filter(id => id !== role.id) }))}/><i style={{ background: role.color }}/><span>{role.name}</span></label>) : <small>Create a custom server role first to assign ticket support access.</small>}
@@ -202,6 +211,7 @@ export function TicketChannelHeader({
   const [allowUserClose, setAllowUserClose] = useState(true);
   const [allowClaim, setAllowClaim] = useState(true);
   const [hasTranscript, setHasTranscript] = useState(false);
+  const [welcomeMessage, setWelcomeMessage] = useState("");
   const [ticketMembers, setTicketMembers] = useState<TicketMember[]>([]);
   const [selectedMember, setSelectedMember] = useState("");
   const [busy, setBusy] = useState(false);
@@ -222,7 +232,7 @@ export function TicketChannelHeader({
     setTicket(row);
     onArchivedChange(row.status === "archived");
     const [panelResult, creatorResult, assignedResult, memberResult, transcriptResult] = await Promise.all([
-      supabase.from("ticket_panels").select("support_role_ids,allow_user_close,allow_claim").eq("channel_id", row.panel_channel_id).maybeSingle(),
+      supabase.from("ticket_panels").select("support_role_ids,allow_user_close,allow_claim,welcome_message").eq("channel_id", row.panel_channel_id).maybeSingle(),
       supabase.from("profiles").select("username").eq("id", row.created_by).maybeSingle(),
       row.assigned_to ? supabase.from("profiles").select("username").eq("id", row.assigned_to).maybeSingle() : Promise.resolve({ data: null, error: null }),
       supabase.from("ticket_members").select("user_id").eq("ticket_id", row.id),
@@ -232,6 +242,7 @@ export function TicketChannelHeader({
       setSupportRoleIds(panelResult.data.support_role_ids || []);
       setAllowUserClose(panelResult.data.allow_user_close !== false);
       setAllowClaim(panelResult.data.allow_claim !== false);
+      setWelcomeMessage(panelResult.data.welcome_message || "");
     }
     setCreatorName(creatorResult.data?.username || "Member");
     setAssignedName(assignedResult.data?.username || (row.assigned_to ? "Support member" : "Unclaimed"));
@@ -286,6 +297,7 @@ export function TicketChannelHeader({
       <div className={"ticket-status-pill ticket-status-" + ticket.status}>{ticket.status === "archived" ? "Archived" : ticket.status === "claimed" ? "Claimed" : "Open"}</div>
     </div>
     <div className="ticket-channel-meta"><span>Assigned to <strong>{assignedName}</strong></span><span>Opened {new Date(ticket.created_at).toLocaleDateString()}</span></div>
+    {welcomeMessage && <div className="ticket-welcome-message">{welcomeMessage}</div>}
     <div className="ticket-channel-actions">
       {ticket.status !== "archived" && isSupport && allowClaim && ticket.status === "open" && <button type="button" className="btn small secondary" disabled={busy} onClick={() => void runAction("claim")}><Icon name="user-check" size={14}/> Claim</button>}
       {ticket.status !== "archived" && canClose && <button type="button" className="btn small secondary" disabled={busy} onClick={() => void runAction("close")}><Icon name="archive" size={14}/> Close ticket</button>}
