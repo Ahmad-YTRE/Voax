@@ -7,7 +7,7 @@ export type IconName =
   | "home" | "search" | "explore" | "menu" | "grid" | "chevron" | "plus" | "close"
   | "shield" | "flag" | "lock" | "bell" | "bell-off" | "block"
   | "settings" | "refresh" | "download" | "upload" | "link" | "filter"
-  | "calendar" | "clock" | "location" | "globe" | "palette" | "user" | "users" | "hash" | "chevron-up" | "chevron-down"
+  | "calendar" | "clock" | "location" | "globe" | "palette" | "user" | "users" | "hash" | "ticket" | "megaphone" | "messages-square" | "chevron-up" | "chevron-down"
   | "pickaxe" | "tree" | "flask" | "inbox" | "send" | "paperclip" | "sparkles" | "message"
   | "zap" | "micOff" | "headphonesOff" | "voice" | "arrowUpRight" | "arrowRight" | "chevronDown" | "at";
 
@@ -65,6 +65,9 @@ const paths: Record<string, React.ReactNode> = {
   user: <><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2z"/></>,
   users: <><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.9M16 3.2a4 4 0 0 1 0 7.6"/></>,
   hash: <path d="M4 9h16M3 15h16M10 3 8 21M16 3l-2 18"/>,
+  ticket: <><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2.5 2.5 0 0 0 0 5v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2.5 2.5 0 0 0 0-5z"/><path d="M13 6v2M13 11v2M13 16v2"/></>,
+  megaphone: <><path d="m3 11 18-5v12L3 13z"/><path d="M11 15 13 21H8l-2-7M21 9l-2 1M21 16l-2-1"/></>,
+  "messages-square": <><path d="M21 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 2v-5a7.5 7.5 0 1 1 18-4.5z"/><path d="M8 9h8M8 13h5"/></>,
   pickaxe: <><path d="M3.5 7.5 11 4l9.5 4.5-3 2.2-6.3-2.9-4.6 3z"/><path d="m10.7 8.1-5.2 12.6M13.1 12l4.6 8.5"/></>,
   tree: <><path d="m12 3-5 7h3l-4 6h12l-4-6h3z"/><path d="M12 16v5"/></>,
   flask: <><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M8 15h8"/></>,
