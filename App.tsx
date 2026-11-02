@@ -769,7 +769,7 @@ function App({ session }: { session: Session }) {
   const [presenceByUser, setPresenceByUser] = useState<Record<string, PresenceStatus>>({});
   const [presenceByServer, setPresenceByServer] = useState<Record<string, number>>({});
   const [serverMembersByServer, setServerMembersByServer] = useState<Record<string, string[]>>({});
-  const [discoverableServerIds, setDiscoverableServerIds] = useState<string[]>([]);
+  const [presenceServerIds, setPresenceServerIds] = useState<string[]>([]);
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const messageEventsChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const activeRef = useRef(active);
@@ -1088,12 +1088,12 @@ function App({ session }: { session: Session }) {
     channel.on("presence",{event:"sync"},sync).subscribe(async state=>{
       if(state==="SUBSCRIBED"){
         if(status==="Offline")await channel.untrack();
-        else await channel.track({userId:session.user.id,status,online_at:new Date().toISOString(),serverIds:discoverableServerIds});
+        else await channel.track({userId:session.user.id,status,online_at:new Date().toISOString(),serverIds:presenceServerIds});
         sync();
       }
     });
     return()=>{void channel.untrack();void supabase.removeChannel(channel);};
-  },[session.user.id,status,discoverableServerIds]);
+  },[session.user.id,status,presenceServerIds]);
   useEffect(()=>{setPeople(old=>old.map(person=>({...person,online:Boolean(presenceByUser[person.id]&&presenceByUser[person.id]!=="Offline"),status:presenceByUser[person.id]||"Offline"})));},[presenceByUser]);
   useEffect(()=>{let cancelled=false;const load=async()=>{const {data,error}=await supabase.from("user_notification_blocks").select("blocked_actor_id").eq("user_id",session.user.id);if(cancelled)return;if(error){console.warn("Notification blocks unavailable",error.message);}else setBlockedNotificationActors((data||[]).map(row=>row.blocked_actor_id));};void load();return()=>{cancelled=true;};},[session.user.id]);
   useEffect(()=>{let cancelled=false;const load=async()=>{const {data,error}=await supabase.from("user_notification_preferences").select("global_mode,direct_mentions_enabled,role_mentions_enabled,everyone_mentions_enabled,here_mentions_enabled").eq("user_id",session.user.id).maybeSingle();if(cancelled)return;if(error){notify("Unable to load notification preferences: "+error.message);return;}if(data){setGlobalNotificationMode(data.global_mode||"all");setDirectMentionsEnabled(data.direct_mentions_enabled!==false);setRoleMentionsEnabled(data.role_mentions_enabled!==false);setEveryoneMentionsEnabled(data.everyone_mentions_enabled!==false);setHereMentionsEnabled(data.here_mentions_enabled!==false);}};void load();return()=>{cancelled=true;};},[session.user.id]);
@@ -1433,17 +1433,16 @@ function App({ session }: { session: Session }) {
     const {data:ownMemberships,error:membershipError}=await supabase.from("server_members").select("server_id").eq("user_id",uid);
     if(membershipError)throw membershipError;
     const serverIds=[...new Set((ownMemberships||[]).map(row=>row.server_id))];
-    setDiscoverableServerIds([]);
-    let serverRows:any[]=[],channelRows:any[]=[],serverMemberRows:any[]=[],categoryRows:any[]=[],discoveryRows:any[]=[];
+    setPresenceServerIds([]);
+    let serverRows:any[]=[],channelRows:any[]=[],serverMemberRows:any[]=[],categoryRows:any[]=[];
     if(serverIds.length){
       const [sr,cr,mr,cat,dr]=await Promise.all([
         supabase.from("servers").select("id,public_id,name,description,created_by,invite_code,icon_url,banner_url").in("id",serverIds).order("created_at"),
         supabase.from("channels").select("id,public_id,server_id,name,description,category,category_id,position,channel_type,permissions_synced").in("server_id",serverIds).order("position").order("created_at"),
         supabase.from("server_members").select("server_id,user_id").in("server_id",serverIds),
-        supabase.from("channel_categories").select("id,server_id,name,position").in("server_id",serverIds).order("position").order("created_at"),
-        supabase.from("server_discovery").select("server_id").in("server_id",serverIds).eq("listing_enabled",true).eq("listing_status","approved")]);
+        supabase.from("channel_categories").select("id,server_id,name,position").in("server_id",serverIds).order("position").order("created_at")]);
       if(sr.error)throw sr.error;if(cr.error)throw cr.error;if(mr.error)throw mr.error;if(cat.error)throw cat.error;
-      serverRows=sr.data||[];channelRows=cr.data||[];serverMemberRows=mr.data||[];categoryRows=cat.data||[];if(!dr.error)discoveryRows=dr.data||[];else console.warn("Public discovery presence metadata unavailable",dr.error.message);
+      serverRows=sr.data||[];channelRows=cr.data||[];serverMemberRows=mr.data||[];categoryRows=cat.data||[];
     }
     const [friendResult,ownConvResult]=await Promise.all([
       supabase.from("friendships").select("id,requester_id,addressee_id,status").or("requester_id.eq."+uid+",addressee_id.eq."+uid),
@@ -1482,7 +1481,7 @@ function App({ session }: { session: Session }) {
     setDmActivity(activityByPerson);
     const colors=["green","purple","orange","blue","pink"];
     setServers(serverRows.map(row=>({id:row.id,publicId:row.public_id,name:row.name,description:row.description||"Community server",createdBy:row.created_by,inviteCode:row.invite_code,iconUrl:row.icon_url||null,bannerUrl:row.banner_url||null,role:row.created_by===uid?"owner":"member"})));
-    setDiscoverableServerIds(discoveryRows.map(row=>row.server_id));
+    setPresenceServerIds(serverIds);
     const membersByServer:Record<string,string[]>={};for(const row of serverMemberRows)(membersByServer[row.server_id] ||= []).push(row.user_id);setServerMembersByServer(membersByServer);
     setFriendRequests((friendships||[]).filter(row=>row.status==="pending"&&row.addressee_id===uid).map(row=>({id:row.id,requester_id:row.requester_id,addressee_id:row.addressee_id,name:profiles.find(p=>p.id===row.requester_id)?.username||"Player",avatarUrl:profiles.find(p=>p.id===row.requester_id)?.avatar_url||null})));
     setChannels(channelRows.map(row=>({id:row.id,publicId:row.public_id,serverId:row.server_id,name:row.name,description:row.description||"",category:row.category||"Text Channels",categoryId:row.category_id||null,position:Number(row.position)||0,channelType:row.channel_type||"text",permissionsSynced:row.permissions_synced!==false})));
