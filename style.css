@@ -4111,3 +4111,18 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   .mobile-member-backdrop{bottom:calc(60px + env(safe-area-inset-bottom))}
   .member-panel{bottom:calc(60px + env(safe-area-inset-bottom))}
 }
+
+
+/* Keep the desktop members column available on compact laptop/desktop widths. */
+@media (min-width:651px) and (max-width:900px) {
+  .app-shell.has-members {
+    grid-template-columns:68px minmax(160px,205px) minmax(0,1fr) 190px;
+  }
+  .app-shell.has-members .member-panel {
+    display:flex;
+    min-width:0;
+  }
+  .app-shell.has-members .main-panel {
+    min-width:0;
+  }
+}
