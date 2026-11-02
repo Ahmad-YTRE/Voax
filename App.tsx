@@ -1436,7 +1436,7 @@ function App({ session }: { session: Session }) {
     setPresenceServerIds([]);
     let serverRows:any[]=[],channelRows:any[]=[],serverMemberRows:any[]=[],categoryRows:any[]=[];
     if(serverIds.length){
-      const [sr,cr,mr,cat,dr]=await Promise.all([
+      const [sr,cr,mr,cat]=await Promise.all([
         supabase.from("servers").select("id,public_id,name,description,created_by,invite_code,icon_url,banner_url").in("id",serverIds).order("created_at"),
         supabase.from("channels").select("id,public_id,server_id,name,description,category,category_id,position,channel_type,permissions_synced").in("server_id",serverIds).order("position").order("created_at"),
         supabase.from("server_members").select("server_id,user_id").in("server_id",serverIds),
