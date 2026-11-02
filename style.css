@@ -4037,3 +4037,55 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .ticket-welcome-message{margin-left:46px;padding:10px 12px;border-left:3px solid var(--ticket-panel-accent,var(--accent,#42c5ee));border-radius:0 7px 7px 0;background:color-mix(in srgb,var(--ticket-panel-accent,var(--accent,#42c5ee)) 7%,transparent);color:var(--muted,#aab5c5);font-size:11px;line-height:1.55;white-space:pre-wrap}
 .ticket-panel-settings input[type=color]{width:48px;height:34px;padding:3px;border:1px solid var(--border,#293342);border-radius:7px;background:var(--surface,#101722);cursor:pointer}
 @media(max-width:650px){.ticket-welcome-message{margin-left:0}}
+
+
+/* Mobile-first app navigation and touch layout */
+.mobile-bottom-nav{display:none}
+@media(max-width:650px){
+  .mobile-bottom-nav{
+    position:fixed;z-index:30;left:0;right:0;bottom:0;
+    min-height:64px;padding:6px max(10px,env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;
+    background:rgba(8,11,17,.96);border-top:1px solid #ffffff14;
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)
+  }
+  .mobile-bottom-nav button{
+    min-width:0;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    border:1px solid transparent;border-radius:10px;background:transparent;color:#8491a5;
+    font-size:10px;font-weight:700;touch-action:manipulation
+  }
+  .mobile-bottom-nav button .ui-icon{width:20px;height:20px}
+  .mobile-bottom-nav button.active{color:var(--accent);background:#00e5ff10;border-color:#00e5ff18}
+  .app-shell{height:100dvh;min-height:0;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+  .server-rail{padding-bottom:calc(12px + env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain}
+  .sidebar.sidebar-open{bottom:calc(64px + env(safe-area-inset-bottom));max-height:none;width:min(320px,calc(100vw - 46px));}
+  .main-panel{min-height:0}
+  .topbar{padding-top:env(safe-area-inset-top);height:calc(58px + env(safe-area-inset-top));min-height:calc(58px + env(safe-area-inset-top))}
+  .message-scroll{padding-bottom:18px;scroll-padding-bottom:18px}
+  .composer-area{padding-bottom:12px}
+  .member-panel{display:none!important}
+  .has-members .main-panel{grid-column:2}
+  .modal-backdrop,.discovery-modal-backdrop{align-items:flex-end;padding:10px 10px calc(10px + env(safe-area-inset-bottom))}
+  .modal,.discovery-modal{width:100%;max-width:560px;max-height:calc(100dvh - 24px - env(safe-area-inset-top));overflow-y:auto;border-radius:18px 18px 12px 12px}
+  .topbar-actions .icon-btn{min-width:36px;min-height:36px}
+  .composer button,.composer .attach-btn,.composer .send-btn{min-width:38px;min-height:38px}
+  .friend-tools .filter-tabs{overflow-x:auto;max-width:100%}
+  .filter-tabs button{white-space:nowrap;min-height:38px}
+  .discussion-header{align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .discussion-create-footer{align-items:flex-start;gap:10px;flex-direction:column}
+  .discussion-create-footer button{width:100%}
+  .ticket-channel-actions{align-items:stretch;flex-wrap:wrap}
+  .ticket-channel-actions>.btn,.ticket-add-member{flex:1 1 auto}
+  .ticket-add-member select{min-width:0;max-width:100%}
+  .ticket-panel-heading{align-items:flex-start}
+  .ticket-category-grid{grid-template-columns:minmax(0,1fr)}
+  .ticket-panel-settings form{min-width:0}
+  .ticket-settings-footer{align-items:stretch;flex-direction:column}
+  .ticket-settings-footer button{width:100%}
+}
+@media(max-width:380px){
+  .mobile-bottom-nav{min-height:60px}
+  .mobile-bottom-nav button{font-size:9px}
+  .app-shell{padding-bottom:calc(60px + env(safe-area-inset-bottom))}
+  .sidebar.sidebar-open{bottom:calc(60px + env(safe-area-inset-bottom))}
+}
