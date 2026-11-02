@@ -87,7 +87,7 @@ export function ExplorePage({session,embedded=false,routePath,onNavigate,onlineC
       ]);
       if(!alive)return;
       if(cards.error){setNotice("Couldn't load Explore: "+cards.error.message);setLoading(false);return;}
-      setListings((cards.data||[]) as Listing[]);
+      setListings(((cards.data||[]) as Listing[]).map(item=>({...item,online_count:onlineCounts[item.server_id]??0})));
       if(membership.error){setNotice("Couldn't check your server memberships.");}
       setMembers(new Set((membership.data||[]).map((row:{server_id:string})=>row.server_id)));
       setLoading(false);
