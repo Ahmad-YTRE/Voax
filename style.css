@@ -4129,3 +4129,31 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
     min-width:0;
   }
 }
+
+
+/* Profile card More actions: three dots animate from horizontal to vertical on hover. */
+.profile-icon-action .profile-more-dots {
+  position:relative;
+  display:block;
+  width:17px;
+  height:17px;
+  pointer-events:none;
+}
+.profile-icon-action .profile-more-dots i {
+  position:absolute;
+  top:7px;
+  left:2px;
+  width:3px;
+  height:3px;
+  border-radius:50%;
+  background:currentColor;
+  transition:transform 180ms cubic-bezier(.2,.8,.2,1);
+}
+.profile-icon-action .profile-more-dots i:nth-child(2) { left:7px; }
+.profile-icon-action .profile-more-dots i:nth-child(3) { left:12px; }
+.profile-icon-action:hover .profile-more-dots i:nth-child(1) { transform:translate(6px,-5px); }
+.profile-icon-action:hover .profile-more-dots i:nth-child(2) { transform:translate(1px,0); }
+.profile-icon-action:hover .profile-more-dots i:nth-child(3) { transform:translate(-4px,5px); }
+@media (prefers-reduced-motion:reduce) {
+  .profile-icon-action .profile-more-dots i { transition:none; }
+}
