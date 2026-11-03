@@ -4171,3 +4171,50 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .friend-request-card .friend-info strong,.friend-request-card .friend-info small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .friend-requests-empty{padding:14px;border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:13px}
 @media(max-width:700px){.friend-requests-list{grid-template-columns:1fr}.friend-add-form{width:100%}.friend-add-form input{max-width:none;min-width:0}}
+
+
+/* Discord-style profile sidebar for direct messages. */
+.app-shell.has-dm-profile {
+  grid-template-columns: clamp(52px,5vw,72px) clamp(190px,19vw,280px) minmax(0,1fr) 280px;
+}
+.dm-profile-panel {
+  min-width:0;min-height:0;display:flex;flex-direction:column;overflow-y:auto;
+  background:#0e1219;border-left:1px solid var(--line);color:#dbe2ee;
+}
+.dm-profile-panel-head {
+  position:sticky;top:0;z-index:2;min-height:70px;flex:0 0 auto;padding:0 13px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  border-bottom:1px solid var(--line);background:#0e1219;
+}
+.dm-profile-panel-head strong,.dm-profile-panel-head span{display:block}
+.dm-profile-panel-head strong{color:#f2f5fc;font-size:12px}
+.dm-profile-panel-head span{margin-top:4px;color:#78869a;font-size:10px}
+.dm-profile-banner{height:104px;flex:0 0 104px}
+.dm-profile-identity{padding-inline:14px}
+.dm-profile-identity .profile-popout-avatar{border-color:#0e1219}
+.dm-profile-body{padding:0 14px 20px}
+.dm-profile-body h2{font-size:19px}
+.dm-profile-body .profile-popout-divider{margin:16px 0}
+.dm-profile-body .profile-about{padding:0}
+.dm-profile-body .profile-mutual{margin-top:20px}
+.dm-profile-body .profile-mutual-list{display:flex;flex-wrap:wrap;gap:8px}
+.dm-profile-body .profile-mutual-server-icon{width:38px;height:38px;display:grid;place-items:center;overflow:hidden;border-radius:11px;background:#263344;color:#eafaff;font-size:10px;font-weight:900}
+.dm-profile-body .profile-mutual-server-icon img{width:100%;height:100%;object-fit:cover}
+.dm-profile-body .profile-mutual-empty{margin:0;color:#8792a5;font-size:11px}
+.mobile-dm-profile-backdrop{display:none}
+@media(max-width:1200px) and (min-width:901px){.app-shell.has-dm-profile{grid-template-columns:68px minmax(185px,230px) minmax(0,1fr) 250px}}
+@media(max-width:900px){
+  .app-shell.has-dm-profile{grid-template-columns:68px minmax(185px,230px) minmax(0,1fr)}
+  .mobile-dm-profile-backdrop{display:block;position:fixed;z-index:39;inset:70px 0 0;width:100%;height:auto;padding:0;border:0;border-radius:0;background:rgba(0,0,0,.48);cursor:pointer;touch-action:manipulation}
+  .dm-profile-panel{position:fixed;z-index:40;top:70px;right:0;bottom:0;width:min(340px,88vw);max-width:88vw;border-left:1px solid var(--line);box-shadow:-18px 0 48px rgba(0,0,0,.42)}
+}
+@media(max-width:650px){
+  .app-shell.has-dm-profile{grid-template-columns:52px minmax(0,1fr)}
+  .mobile-dm-profile-backdrop{top:calc(58px + env(safe-area-inset-top));bottom:calc(64px + env(safe-area-inset-bottom))}
+  .dm-profile-panel{top:calc(58px + env(safe-area-inset-top));bottom:calc(64px + env(safe-area-inset-bottom));width:min(340px,88vw);max-width:88vw}
+  .dm-profile-panel-head{min-height:58px}
+}
+@media(max-width:380px){
+  .mobile-dm-profile-backdrop{bottom:calc(60px + env(safe-area-inset-bottom))}
+  .dm-profile-panel{bottom:calc(60px + env(safe-area-inset-bottom))}
+}
