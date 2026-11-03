@@ -4157,3 +4157,17 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 @media (prefers-reduced-motion:reduce) {
   .profile-icon-action .profile-more-dots i { transition:none; }
 }
+
+
+/* Inline friend requests and the dedicated pending-requests view. */
+.friend-add-form{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.friend-add-form input{min-width:190px;max-width:260px;flex:1;padding:10px 12px;border:1px solid var(--border-color,var(--border));border-radius:9px;background:var(--panel,var(--surface));color:var(--text,var(--foreground));font:inherit}
+.friend-requests-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:4px 0 20px}
+.friend-requests-list>section{min-width:0}
+.friend-requests-list>section>h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:14px;font-weight:700}
+.friend-requests-list>section>h3 span{display:inline-grid;place-items:center;min-width:21px;height:21px;padding:0 6px;border-radius:999px;background:var(--surface-2,rgba(255,255,255,.07));color:var(--muted);font-size:11px}
+.friend-request-card{display:flex;align-items:center;gap:10px;margin:0 0 8px;padding:10px;min-width:0}
+.friend-request-card .friend-info{flex:1;min-width:0}
+.friend-request-card .friend-info strong,.friend-request-card .friend-info small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.friend-requests-empty{padding:14px;border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:13px}
+@media(max-width:700px){.friend-requests-list{grid-template-columns:1fr}.friend-add-form{width:100%}.friend-add-form input{max-width:none;min-width:0}}
