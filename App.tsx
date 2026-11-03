@@ -1693,7 +1693,6 @@ function App({ session }: { session: Session }) {
       conversationId=conversation.id;
     }
     setConversationIds(old=>({...old,[target!.id]:conversationId!}));
-    setDmActivity(old=>({...old,[target!.id]:Date.now()}));
     setPeople(old=>old.some(p=>p.id===target!.id)?old.map(p=>p.id===target!.id?{...p,hasConversation:true}:p):[...old,{...target!,hasConversation:true}]);
     setActive(target.name);setView("dm");setTypingPerson(null);setShowLanding(false);setSidebarOpen(false);
     setUnread(old=>({...old,[keyFor("dm",target!.name)]:0}));const readAt=new Date().toISOString();void supabase.from("notifications").update({read_at:readAt}).eq("recipient_id",session.user.id).eq("entity_id",conversationId).is("read_at",null).then(({error})=>{if(!error)setNotifications(old=>old.map(n=>n.entity_id===conversationId&&!n.read_at?{...n,read_at:readAt}:n));});window.history.pushState({},"",`/dm/${target.publicId||target.id}`);setModal(null);
