@@ -1,0 +1,30 @@
+name: Voax Linking bot checks
+on:
+  push:
+    branches: [feature/voax-linking]
+    paths:
+      - "LinkingBot/**"
+      - ".github/workflows/voax-linking.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "LinkingBot/**"
+      - ".github/workflows/voax-linking.yml"
+permissions:
+  contents: read
+jobs:
+  bot-checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: LinkingBot
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: LinkingBot/package.json
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm test
