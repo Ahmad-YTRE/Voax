@@ -4303,3 +4303,5 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   .friend-request-card{flex-wrap:wrap}
   .friend-request-actions{width:100%;padding-left:44px}
 }
+.server-rail .server-rail-list > .server-icon{position:relative;}
+.server-rail .server-ping-count{position:absolute;right:-6px;bottom:-6px;z-index:2;display:grid;place-items:center;min-width:19px;height:19px;padding:0 5px;border:2px solid #080a0e;border-radius:999px;background:#ed4245;color:#fff;font-size:10px;font-weight:850;line-height:1;font-variant-numeric:tabular-nums;box-shadow:0 1px 5px #0008;pointer-events:none;}
