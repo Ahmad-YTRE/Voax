@@ -2223,7 +2223,7 @@ function App({ session }: { session: Session }) {
         </div>
         <div className="profile-popout-body dm-profile-body">
           <h2>{activePerson.name}</h2>
-          <div className="profile-popout-handle">{activePerson.name.replace(/\\s+/g,"").toLowerCase()} <span>·</span> Voax</div>
+          <div className="profile-popout-handle">{activePerson.name.replace(/\s+/g,"").toLowerCase()} <span>·</span> Voax</div>
           <div className="profile-popout-status"><i className={activePerson.online ? "online" : ""}/>{activePerson.status || (activePerson.online ? "Online" : "Offline")}</div>
           <div className="profile-popout-divider"/>
           <section className="profile-about"><h3>ABOUT ME</h3><p>{activePerson.bio?.trim() || "This member hasn’t added a bio yet."}</p></section>
