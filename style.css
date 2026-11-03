@@ -2864,11 +2864,10 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: #2a4554 transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-.server-rail-list::-webkit-scrollbar { width: 4px; }
-.server-rail-list::-webkit-scrollbar-thumb { background: #2a4554; border-radius: 8px; }
+.server-rail-list::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .server-rail-list .server-icon { flex: 0 0 43px; }
 .server-workspace-menu-trigger > .ui-icon.icon-chevronDown {
   width: 16px;
