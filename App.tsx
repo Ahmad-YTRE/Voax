@@ -121,7 +121,8 @@ function readSaved(): SavedState | null {
   try { const value = localStorage.getItem(KEY) ?? localStorage.getItem("minedm.v2"); if (!value) return null; if (!localStorage.getItem(KEY)) localStorage.setItem(KEY, value); return JSON.parse(value) as SavedState; } catch { return null; }
 }
 const saved = typeof window !== "undefined" ? readSaved() : null;
-function presenceIndicatorClass(status?: PresenceStatus) { const value = (status || "Offline").toLowerCase().replace(/\\s+/g, "-"); return `presence-indicator presence-${value}`; }\nfunction initials(name: string) { return name.trim().split(/\s+/).map(x => x[0]).join("").slice(0, 2).toUpperCase() || "??"; }
+function presenceIndicatorClass(status?: PresenceStatus) { const value = (status || "Offline").toLowerCase().replace(/\s+/g, "-"); return `presence-indicator presence-${value}`; }
+function initials(name: string) { return name.trim().split(/\s+/).map(x => x[0]).join("").slice(0, 2).toUpperCase() || "??"; }
 function formatClock(date: Date, format: "12h" | "24h") { return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: format === "12h" }); }
 function formatDateTime(date: Date, format: "12h" | "24h") {
   const now = new Date();
