@@ -9,7 +9,7 @@ const clientId=env.DISCORD_CLIENT_ID||"";
 const clientSecret=env.DISCORD_CLIENT_SECRET||"";
 const redirectUri=env.DISCORD_REDIRECT_URI||"";
 const publicUrl=env.VOAX_PUBLIC_URL||"https://voax.app";
-const permissions="536988672";
+const permissions="0";
 const admin=createClient(url,serviceKey,{auth:{persistSession:false,autoRefreshToken:false}});
 const userClient=createClient(url,anonKey,{auth:{persistSession:false,autoRefreshToken:false}});
 const hash=(v:string)=>createHash("sha256").update(v).digest("hex");

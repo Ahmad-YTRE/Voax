@@ -14,8 +14,8 @@ A separately deployed Discord Gateway worker for Voax two-way channel bridge. Al
 3. Enable **Message Content Intent**. Do not enable Server Members or Presence intents.
 4. Configure the OAuth2 redirect URI exactly as https://YOUR_VOAX_DOMAIN/api/linking/oauth?action=callback.
 5. The install flow requests identify and guilds for the installing administrator, then asks Discord to install the bot in the selected guild with bot and applications.commands scopes.
-6. Requested bot permissions: View Channels, Send Messages, Read Message History, Embed Links, Attach Files, and Manage Webhooks. Administrator is not requested.
-7. Grant these permissions only in channels that will be linked. For private channels, explicitly grant the bot access before linking. Do not change member permissions automatically.
+6. The installation URL requests **no guild-wide permissions** (permission integer 0). Administrator is never requested.
+7. In each channel you intend to link, grant the bot role View Channel, Send Messages, Read Message History, Embed Links, Attach Files, and Manage Webhooks. For strict isolation, explicitly deny the bot role View Channel in unlinked channels where @everyone otherwise grants visibility. Voax never changes Discord channel permissions automatically.
 8. Gateway intents used: Guilds, Guild Messages, and Message Content.
 
 ## Environment variables
