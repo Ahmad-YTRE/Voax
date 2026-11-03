@@ -13,13 +13,9 @@ grant all on public.discord_channel_webhooks to service_role;
 create or replace function public.claim_discord_sync_jobs(p_limit integer default 10)
 returns setof public.discord_sync_outbox
 language plpgsql
-security definer
-set search_path=public,pg_temp
+set search_path=''
 as $$
 begin
-  if coalesce(auth.role(),'') <> 'service_role' then
-    raise exception 'Service role required' using errcode='42501';
-  end if;
   return query
   with picked as (
     select id from public.discord_sync_outbox

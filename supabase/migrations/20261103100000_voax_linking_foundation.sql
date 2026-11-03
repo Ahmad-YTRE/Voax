@@ -106,7 +106,7 @@ create index if not exists messages_bridge_external_idx on public.messages(bridg
 -- Add Manage Integrations to the existing JSON permission model; no existing role is elevated.
 -- Permission checks continue to use public.has_server_permission().
 alter table public.server_roles alter column permissions set default
-  '{"manage_server":false,"manage_roles":false,"manage_channels":false,"manage_integrations":false}'::jsonb;
+  '{"kick_members":false,"manage_roles":false,"manage_server":false,"manage_channels":false,"manage_messages":false,"manage_integrations":false}'::jsonb;
 
 alter table public.discord_integrations enable row level security;
 alter table public.discord_channel_links enable row level security;
@@ -182,7 +182,7 @@ grant all on public.discord_user_connections to service_role;
 grant usage, select on sequence public.discord_sync_outbox_id_seq to service_role;
 
 create or replace function public.enqueue_voax_linking_message()
-returns trigger language plpgsql security definer set search_path=public,pg_temp as $$
+returns trigger language plpgsql security definer set search_path='' as $$
 declare link_row public.discord_channel_links%rowtype;
 begin
   if new.channel_id is null or new.bridge_source is not null then return new; end if;
@@ -201,7 +201,7 @@ create trigger voax_linking_enqueue_message after insert on public.messages
 for each row execute function public.enqueue_voax_linking_message();
 
 create or replace function public.enqueue_voax_linking_edit()
-returns trigger language plpgsql security definer set search_path=public,pg_temp as $$
+returns trigger language plpgsql security definer set search_path='' as $$
 declare link_row public.discord_channel_links%rowtype;
 begin
   if new.channel_id is null or new.bridge_source is not null or old.body is not distinct from new.body then return new; end if;
@@ -219,7 +219,7 @@ create trigger voax_linking_enqueue_edit after update of body on public.messages
 for each row execute function public.enqueue_voax_linking_edit();
 
 create or replace function public.enqueue_voax_linking_delete()
-returns trigger language plpgsql security definer set search_path=public,pg_temp as $$
+returns trigger language plpgsql security definer set search_path='' as $$
 declare link_row public.discord_channel_links%rowtype;
 begin
   if old.channel_id is null or old.bridge_source is not null then return old; end if;

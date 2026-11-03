@@ -15,9 +15,8 @@ drop policy if exists "Users unlink own Discord identity" on public.discord_user
 
 -- Preserve strict FIFO order per linked channel and recover jobs from a crashed worker.
 create or replace function public.claim_discord_sync_jobs(p_limit integer default 10)
-returns setof public.discord_sync_outbox language plpgsql security definer set search_path=public,pg_temp as $$
+returns setof public.discord_sync_outbox language plpgsql set search_path='' as $
 begin
- if coalesce(auth.role(),'') <> 'service_role' then raise exception 'Service role required' using errcode='42501'; end if;
  update public.discord_sync_outbox set status='failed',locked_at=null,available_at=now() where status='processing' and locked_at < now()-interval '5 minutes';
  return query with picked as (
   select q.id from public.discord_sync_outbox q where q.status in ('pending','failed') and q.available_at<=now()
