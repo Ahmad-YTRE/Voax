@@ -52,10 +52,10 @@ Only standard Discord text and announcement channels can be linked to standard V
 ## Operational behavior
 - Bot/webhook-authored Discord messages are ignored to prevent loops.
 - Voax-originated posts use a bot-owned channel webhook with the Voax username, avatar, and [Voax] suffix; they are not Discord-user impersonation.
-- Discord-originated posts carry original Discord identity metadata and [Discord] attribution in Voax.
+- Discord-originated posts carry original Discord identity metadata and [Discord] attribution in Voax. Linked user accounts translate to Voax member mentions when the target belongs to the linked server; unlinked users, role mentions, and channel mentions remain readable text.
 - Outbox retries use persistent Supabase state and exponential backoff. Repeated failures move jobs to dead and mark the channel link degraded.
 - Attachment URLs are relayed where accessible; unsupported files or expired external URLs may not be retained indefinitely.
-- Message content is never rendered as raw HTML by the bridge.
+- Message content is never rendered as raw HTML by the bridge. The current bridge preserves Markdown source text, but the full Discord-specific Markdown renderer and rich-embed parity are not yet complete.
 
 ## Tests
 Run npm test from LinkingBot.
