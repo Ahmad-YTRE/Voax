@@ -4305,3 +4305,15 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 }
 .server-rail .server-rail-list > .server-icon{position:relative;}
 .server-rail .server-ping-count{position:absolute;right:-6px;bottom:-6px;z-index:2;display:grid;place-items:center;min-width:19px;height:19px;padding:0 5px;border:2px solid #080a0e;border-radius:999px;background:#ed4245;color:#fff;font-size:10px;font-weight:850;line-height:1;font-variant-numeric:tabular-nums;box-shadow:0 1px 5px #0008;pointer-events:none;}
+
+/* Discord-style presence states on user avatars */
+.avatar i.presence-indicator{z-index:2;display:block;box-sizing:border-box}
+.avatar i.presence-online{background:#23a55a}
+.avatar i.presence-idle{background:#f0b232}
+.avatar i.presence-idle::after{content:"";position:absolute;width:58%;height:58%;right:-12%;top:-18%;border-radius:50%;background:#111720}
+.avatar i.presence-do-not-disturb{background:#ed4245}
+.avatar i.presence-do-not-disturb::after{content:"";position:absolute;left:21%;top:calc(50% - 1px);width:58%;height:2px;border-radius:2px;background:#fff}
+.avatar i.presence-offline{background:#80848e}
+.profile-popout-avatar>i.presence-indicator{z-index:2}
+.profile-popout-avatar>i.presence-idle::after{background:#111318}
+.profile-popout-avatar>i.presence-do-not-disturb::after{height:3px;top:calc(50% - 1.5px)}
