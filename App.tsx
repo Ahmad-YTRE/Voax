@@ -2217,8 +2217,20 @@ function App({ session }: { session: Session }) {
       return;
     }
     if (path === "/app" || path === "/app/") {
-      setView(window.location.search === "?view=friends" ? "friends" : "home");
-      setActive("");
+      const callbackParams = new URLSearchParams(window.location.search);
+      const installState = callbackParams.get("discord_install_state");
+      const installServerId = callbackParams.get("discord_install_server");
+      const installServer = installServerId ? servers.find(server => server.id === installServerId) : undefined;
+      if (installState && installServer) {
+        setActiveServer(installServer.id);
+        setServerSettingsSection("integrations");
+        setModal("manageServer");
+        setView("channel");
+        setActive(channels.find(channel => channel.serverId === installServer.id)?.id || "");
+      } else {
+        setView(callbackParams.get("view") === "friends" ? "friends" : "home");
+        setActive("");
+      }
       setShowLanding(false);
       return;
     }
@@ -2244,6 +2256,11 @@ function App({ session }: { session: Session }) {
         setActiveServer(channel.serverId || serverId);
         setActive(channel.id);
         setView("channel");
+        const callbackParams = new URLSearchParams(window.location.search);
+        if (callbackParams.has("discord_install_state")) {
+          setServerSettingsSection("integrations");
+          setModal("manageServer");
+        }
         setShowLanding(false);
         void markChannelRead(channel.id);
         return;
