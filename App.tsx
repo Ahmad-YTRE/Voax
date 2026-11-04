@@ -465,19 +465,19 @@ function MessageContent({ text, onJoinInvite, onOpenProfile, servers = [], membe
   const flushList=()=>{if(!listType||!list.length){list=[];listType=null;return;}const items=list.map((item,index)=><li key={index}>{renderInline(item,"li"+blocks.length+"-"+index)}</li>);blocks.push(listType==="ol"?<ol key={"ol"+blocks.length}>{items}</ol>:<ul key={"ul"+blocks.length}>{items}</ul>);list=[];listType=null;};
   for(let i=0;i<lines.length;i++){
     const line=lines[i];
-    if(line.startsWith(tick.repeat(3))){flushParagraph();flushList();const language=line.slice(3).trim().split(/\\s+/)[0];const code:string[]=[];i++;while(i<lines.length&&!lines[i].startsWith(tick.repeat(3)))code.push(lines[i++]);blocks.push(<pre className="message-code-block" key={"code"+blocks.length}><code className={language?"language-"+language:undefined}>{code.join("\n")}</code></pre>);continue;}
+    if(line.startsWith(tick.repeat(3))){flushParagraph();flushList();const language=line.slice(3).trim().split(/\s+/)[0];const code:string[]=[];i++;while(i<lines.length&&!lines[i].startsWith(tick.repeat(3)))code.push(lines[i++]);blocks.push(<pre className="message-code-block" key={"code"+blocks.length}><code className={language?"language-"+language:undefined}>{code.join("\n")}</code></pre>);continue;}
     if(!line.trim()){flushParagraph();flushList();continue;}
-    const heading=line.match(/^ {0,3}(#{1,3})\\s+(.+)$/);
+    const heading=line.match(/^ {0,3}(#{1,3})\s+(.+)$/);
     if(heading){flushParagraph();flushList();const content=renderInline(heading[2],"heading"+blocks.length);blocks.push(heading[1].length===1?<h3 key={"h"+blocks.length}>{content}</h3>:heading[1].length===2?<h4 key={"h"+blocks.length}>{content}</h4>:<h5 key={"h"+blocks.length}>{content}</h5>);continue;}
-    if(/^ {0,3}(?:-{3,}|\\*{3,}|_{3,})\\s*$/.test(line)){flushParagraph();flushList();blocks.push(<hr key={"hr"+blocks.length}/>);continue;}
-    if(/^ {0,3}>/.test(line)){flushParagraph();flushList();const quote:string[]=[];while(i<lines.length&&/^ {0,3}>/.test(lines[i]))quote.push(lines[i++].replace(/^ {0,3}>\\s?/,""));i--;blocks.push(<blockquote key={"quote"+blocks.length}>{quote.map((part,index)=><p key={index}>{renderInline(part,"quote"+blocks.length+"-"+index)}</p>)}</blockquote>);continue;}
-    const unordered=line.match(/^ {0,3}[-*+]\\s+(.+)$/),ordered=line.match(/^ {0,3}\\d+[.)]\\s+(.+)$/);
+    if(/^ {0,3}(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line)){flushParagraph();flushList();blocks.push(<hr key={"hr"+blocks.length}/>);continue;}
+    if(/^ {0,3}>/.test(line)){flushParagraph();flushList();const quote:string[]=[];while(i<lines.length&&/^ {0,3}>/.test(lines[i]))quote.push(lines[i++].replace(/^ {0,3}>\s?/,""));i--;blocks.push(<blockquote key={"quote"+blocks.length}>{quote.map((part,index)=><p key={index}>{renderInline(part,"quote"+blocks.length+"-"+index)}</p>)}</blockquote>);continue;}
+    const unordered=line.match(/^ {0,3}[-*+]\s+(.+)$/),ordered=line.match(/^ {0,3}\d+[.)]\s+(.+)$/);
     if(unordered||ordered){flushParagraph();const next=ordered?"ol":"ul";if(listType&&listType!==next)flushList();listType=next;list.push((unordered||ordered)![1]);continue;}
     flushList();paragraph.push(line);
   }
   flushParagraph();flushList();
-  const inviteCodes=[...new Set((text.match(/(?:https?:\\/\\/[^\\s<>()]+)?\\/invite\\/([A-Za-z0-9_-]+)/gi)||[]).map(value=>value.match(/\\/invite\\/([A-Za-z0-9_-]+)/i)?.[1]).filter((value):value is string=>Boolean(value)))];
-  const urls=[...new Set((text.match(/https?:\\/\\/[^\\s<>()]+/gi)||[]).map(value=>value.replace(/[.,!?;:]+$/,"")))].filter(value=>!/\\/invite\\//i.test(value));
+  const inviteCodes=[...new Set((text.match(/(?:https?:\/\/[^\s<>()]+)?\/invite\/([A-Za-z0-9_-]+)/gi)||[]).map(value=>value.match(/\/invite\/([A-Za-z0-9_-]+)/i)?.[1]).filter((value):value is string=>Boolean(value)))];
+  const urls=[...new Set((text.match(/https?:\/\/[^\s<>()]+/gi)||[]).map(value=>value.replace(/[.,!?;:]+$/,"")))].filter(value=>!/\/invite\//i.test(value));
   return <div className="message-content">{blocks}{inviteCodes.map(code=><InvitePreviewCard key={code} code={code} onlineCounts={onlineCounts} onJoin={()=>onJoinInvite(code)}/>)}{urls.map(url=><LinkPreview key={url} url={url}/>)}</div>;
 }
 
