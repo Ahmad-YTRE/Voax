@@ -15,7 +15,7 @@ drop policy if exists "Users unlink own Discord identity" on public.discord_user
 
 -- Preserve strict FIFO order per linked channel and recover jobs from a crashed worker.
 create or replace function public.claim_discord_sync_jobs(p_limit integer default 10)
-returns setof public.discord_sync_outbox language plpgsql set search_path='' as $
+returns setof public.discord_sync_outbox language plpgsql set search_path='' as $$
 begin
  update public.discord_sync_outbox set status='failed',locked_at=null,available_at=now() where status='processing' and locked_at < now()-interval '5 minutes';
  return query with picked as (
