@@ -433,9 +433,24 @@ function LinkPreview({ url }: { url: string }) {
 function MessageContent({ text, onJoinInvite, onOpenProfile, servers = [], members = [], roles = [], onlineCounts = {} }: { text: string; onJoinInvite: (code: string) => void; onOpenProfile: (person: Person) => void; servers?: Server[]; members?: Person[]; roles?: ServerRole[]; onlineCounts?: Record<string,number> }) {
   const mentionLabels = [...members.map(person => person.name), ...roles.map(role => role.name)].filter(label => label.trim() && label !== "User").sort((a,b)=>b.length-a.length);
   const labelPattern = mentionLabels.length ? mentionLabels.map(escapeMentionLabel).join("|")+"|" : "";
-  const plainPattern = new RegExp("(https?:\\/\\/[^\\s<>()]+|\\/invite\\/[A-Za-z0-9_-]+|@everyone\\b|@here\\b|@(?:"+labelPattern+"[A-Za-z0-9_-]+)(?=$|[^A-Za-z0-9_]))","gi");
+  const plainPattern = new RegExp("(https?:\\/\\/[^\\s<>()]+|\\/invite\\/[A-Za-z0-9_-]+|<t:\\d{1,12}(?::[tTdDfFR])?>|@everyone\\b|@here\\b|@(?:"+labelPattern+"[A-Za-z0-9_-]+)(?=$|[^A-Za-z0-9_]))","gi");
   const renderPlain = (value:string,keyPrefix:string):React.ReactNode[] => value.split(plainPattern).filter(Boolean).map((token,index)=>{
     const key=keyPrefix+"-"+index;
+    const timestamp=token.match(/^<t:(\d{1,12})(?::([tTdDfFR]))?>$/);
+    if(timestamp){
+      const date=new Date(Number(timestamp[1])*1000);
+      if(!Number.isFinite(date.getTime()))return <React.Fragment key={key}>{token}</React.Fragment>;
+      const format=timestamp[2]||"f";
+      if(format==="R"){
+        const seconds=Math.round((date.getTime()-Date.now())/1000);
+        const units:[Intl.RelativeTimeFormatUnit,number][]=[["year",31536000],["month",2592000],["week",604800],["day",86400],["hour",3600],["minute",60],["second",1]];
+        const unit=units.find(([,size])=>Math.abs(seconds)>=size)||units[units.length-1];
+        const label=new Intl.RelativeTimeFormat(undefined,{numeric:"auto"}).format(Math.round(seconds/unit[1]),unit[0]);
+        return <time key={key} dateTime={date.toISOString()} title={date.toLocaleString()}>{label}</time>;
+      }
+      const label=format==="t"?date.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):format==="T"?date.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"}):format==="d"?date.toLocaleDateString():format==="D"?date.toLocaleDateString([],{year:"numeric",month:"long",day:"numeric"}):format==="F"?date.toLocaleString([],{weekday:"long",year:"numeric",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"}):date.toLocaleString([],{year:"numeric",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"});
+      return <time key={key} dateTime={date.toISOString()} title={date.toLocaleString()}>{label}</time>;
+    }
     const invite=token.match(/(?:https?:\/\/[^/]+)?\/invite\/([A-Za-z0-9_-]+)/i);
     if(invite){const linked=servers.find(server=>server.inviteCode===invite[1]);return <a key={key} className="invite-inline-link" href={"/invite/"+invite[1]} onClick={event=>{event.preventDefault();window.location.assign("/invite/"+invite[1]);}}>{linked?"Invite to "+linked.name:"Voax server invite"}</a>;}
     if(/^https?:\/\//i.test(token)){const clean=token.replace(/[.,!?;:]+$/,"");return <React.Fragment key={key}><a href={clean} target="_blank" rel="noopener noreferrer">{clean}</a>{token.slice(clean.length)}</React.Fragment>;}
@@ -443,12 +458,13 @@ function MessageContent({ text, onJoinInvite, onOpenProfile, servers = [], membe
     return <React.Fragment key={key}>{token}</React.Fragment>;
   });
   const tick=String.fromCharCode(96);
-  const inlinePattern=new RegExp("(\\|\\|[\\s\\S]+?\\|\\||\\*\\*[\\s\\S]+?\\*\\*|__[\\s\\S]+?__|~~[\\s\\S]+?~~|"+tick+"[^"+tick+"\\n]+"+tick+"|\\*[^*\\n]+\\*|_[^_\\n]+_)","g");
+  const inlinePattern=new RegExp("(\\|\\|[\\s\\S]+?\\|\\||\\*\\*[\\s\\S]+?\\*\\*|__[\\s\\S]+?__|~~[\\s\\S]+?~~|"+tick+"[^"+tick+"\\n]+"+tick+"|\\[[^\\]]+\\]\\(https?:\\/\\/[^)\\s]+\\)|\\*[^*\\n]+\\*|_[^_\\n]+_)","g");
   const renderInline=(value:string,keyPrefix:string,depth=0):React.ReactNode[]=>{
     if(depth>6)return renderPlain(value,keyPrefix);
     const syntax=new RegExp(inlinePattern.source,"g");const output:React.ReactNode[]=[];let cursor=0;let match:RegExpExecArray|null;
     while((match=syntax.exec(value))){if(match.index>cursor)output.push(...renderPlain(value.slice(cursor,match.index),keyPrefix+"-"+cursor));const token=match[0],key=keyPrefix+"-md-"+match.index,inner=token.slice(token.startsWith("||")||token.startsWith("**")||token.startsWith("__")||token.startsWith("~~")?2:1,-(token.startsWith("||")||token.startsWith("**")||token.startsWith("__")||token.startsWith("~~")?2:1));
-      if(token.startsWith("||"))output.push(<span key={key} className="message-spoiler" tabIndex={0}>{renderInline(inner,key,depth+1)}</span>);
+      const masked=token.match(/^\\[([^\\]]+)\\]\\((https?:\\/\\/[^)\\s]+)\\)$/);if(masked)output.push(<a key={key} href={masked[2]} target="_blank" rel="noopener noreferrer">{renderInline(masked[1],key,depth+1)}</a>);
+      else if(token.startsWith("||"))output.push(<span key={key} className="message-spoiler" tabIndex={0}>{renderInline(inner,key,depth+1)}</span>);
       else if(token.startsWith("**"))output.push(<strong key={key}>{renderInline(inner,key,depth+1)}</strong>);
       else if(token.startsWith("__"))output.push(<u key={key}>{renderInline(inner,key,depth+1)}</u>);
       else if(token.startsWith("~~"))output.push(<del key={key}>{renderInline(inner,key,depth+1)}</del>);
