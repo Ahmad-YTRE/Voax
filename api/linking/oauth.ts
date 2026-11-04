@@ -7,7 +7,7 @@ const anonKey=env.SUPABASE_ANON_KEY||env.VITE_SUPABASE_PUBLISHABLE_KEY||"";
 const serviceKey=env.SUPABASE_SERVICE_ROLE_KEY||"";
 const clientId=env.DISCORD_CLIENT_ID||"";
 const clientSecret=env.DISCORD_CLIENT_SECRET||"";
-const configuredPublicOrigin=String(env.VOAX_PUBLIC_URL||"https://staging.voax.cc.cd").replace(/\\/+$/,"");
+const configuredPublicOrigin=String(env.VOAX_PUBLIC_URL||"https://staging.voax.cc.cd").replace(/\/+$/,"");
 const supportedHosts=new Set(["staging.voax.cc.cd","voax.cc.cd"]);
 function publicOrigin(req:any){
  const forwarded=String(req.headers?.["x-forwarded-host"]||"").split(",")[0].trim().toLowerCase();
