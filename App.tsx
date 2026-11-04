@@ -1121,6 +1121,12 @@ function App({ session }: { session: Session }) {
         const bridge=row.bridge_metadata as any;const external=bridge?.platform==="discord";const externalAuthor=bridge?.author||{};const message:Message={id:row.id,author:external?String(externalAuthor.username||"Discord user")+" [Discord]":row.author_id===session.user.id?nameRef.current:(peopleRef.current.find(p=>p.id===row.author_id)?.name||"Member"),text:row.body,time:formatClock(new Date(row.created_at), clockFormat),timestamp:row.created_at,...(row.edited_at?{editedAt:row.edited_at}:{}),own:!external&&row.author_id===session.user.id,...(external?{avatarUrl:externalAuthor.avatar_url||null,platform:"discord" as const}:{}),...(external&&Array.isArray(bridge?.embeds)&&bridge.embeds.length?{embeds:bridge.embeds as DiscordEmbed[]}:{}),...(attachments.length?{attachments}:{})};
         setMessages(old=>{const list=old[activeKey]||old[active]||[];if(list.some(m=>m.id===message.id))return old;const next=[...list,message];return{...old,[activeKey]:next,[active]:next};});
       })
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages",filter},async payload=>{
+        const row=payload.new as {id:string;body:string;edited_at?:string|null;attachments?:unknown;bridge_metadata?:any};
+        const attachments=await signMessageAttachments(row.attachments);
+        const bridge=row.bridge_metadata as any;const external=bridge?.platform==="discord";
+        setMessages(old=>Object.fromEntries(Object.entries(old).map(([key,list])=>[key,list.map(message=>message.id===row.id?{...message,text:row.body,editedAt:row.edited_at||undefined,attachments,embeds:external&&Array.isArray(bridge?.embeds)?bridge.embeds as DiscordEmbed[]:undefined}:message)])));
+      })
       .on("broadcast",{event:"message-updated"},payload=>{const updated=payload.payload as {id?:string;body?:string;editedAt?:string};if(!updated?.id||typeof updated.body!=="string")return;setMessages(old=>Object.fromEntries(Object.entries(old).map(([key,list])=>[key,list.map(message=>message.id===updated.id?{...message,text:updated.body!,editedAt:updated.editedAt}:message)])));})
       .on("broadcast",{event:"message-deleted"},payload=>{
         const deletedId=payload.payload?.id;
