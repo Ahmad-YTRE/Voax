@@ -1,34 +1,75 @@
-# BotLinking (bot-hosting.net)
+# Voax Linking Bot (BotLinking)
 
-This folder is a standalone CommonJS deployment package for the Voax Linking Discord bot. Set the host's startup file to `index.js` (or run `npm start`) and use Node.js 20.11+.
+**BotLinking is the one and only bot runtime folder.** It contains the complete Voax Linking Gateway worker and the CommonJS entry point required by bot-hosting.net. The website/API and this persistent bot process deploy independently.
+
+## bot-hosting.net setup
+
+1. Upload the contents of this `BotLinking/` folder as the bot project.
+2. Use Node.js **20.11 or newer** (Node 22 recommended).
+3. Set the startup file to `index.js` or use the package start command `npm start`.
+4. Install dependencies from `package.json`.
+5. Add the required environment variables below in the host's environment/secrets panel.
+6. Enable **Message Content Intent** in the Discord Developer Portal.
+7. Start exactly one worker instance initially.
+
+The root `index.js` is a small CommonJS launcher for hosting panels. It starts the shared TypeScript runtime in `src/`; there is no second, separately maintained JavaScript bot implementation.
 
 ## Required environment variables
 
-Set these in the bot-hosting.net environment/secrets panel:
-
-- `DISCORD_BOT_TOKEN` — token for the Voax Linking bot. `BOT_TOKEN` and `TOKEN` are accepted aliases.
+- `DISCORD_BOT_TOKEN` — token for the Voax Linking Discord bot.
 - `SUPABASE_URL` — Voax Supabase project URL.
-- `SUPABASE_SERVICE_ROLE_KEY` — Supabase service-role key. `SUPABASE_SERVICE_KEY` is accepted as an alias.
+- `SUPABASE_SERVICE_ROLE_KEY` — Supabase service-role key (keep private).
 
-Optional:
+Optional queue settings:
 
-- `OUTBOX_POLL_MS` — queue polling interval in milliseconds (default 1500; minimum 1000).
-- `OUTBOX_BATCH_SIZE` — maximum jobs per poll (default 10; maximum 50).
+- `OUTBOX_POLL_MS` — queue polling interval (default 1200 ms).
+- `OUTBOX_BATCH_SIZE` — jobs claimed per poll (default 10).
 - `OUTBOX_MAX_ATTEMPTS` — attempts before a job is marked dead (default 12).
+- `VOAX_PUBLIC_URL` — public Voax URL (default https://voax.app).
+- `LOG_LEVEL` — debug, info, warn, or error.
 
-## Discord setup
+Use `.env.example` as a reference for local development. Never upload a real `.env` file or expose the service-role key in frontend variables.
 
-Enable **Message Content Intent** in the Discord Developer Portal. The bot needs the channel-specific permissions documented in `LinkingBot/README.md`. The bot uses Guilds, Guild Messages, and Message Content gateway intents; it does not need Presence or Server Members intents.
+## Discord permissions and intents
 
-## Deploy
+Enable **Message Content Intent**. The bot uses Guilds, Guild Messages, and Message Content gateway intents; it does not require Presence or Server Members intents.
 
-Upload/deploy this folder as a Node.js bot project. Install dependencies using the included `package.json`, then start `index.js`. Do not upload a `.env` file or put credentials in source code.
+The install link requests no guild-wide permissions. Grant the bot these permissions only in channels that should be linked: View Channel, Send Messages, Read Message History, Embed Links, Attach Files, and Manage Webhooks. For strict isolation, deny the bot role View Channel in unlinked channels where `@everyone` otherwise grants visibility. Voax never changes Discord channel permissions automatically.
 
-The Supabase Voax Linking migrations must be applied before starting the bot. Keep the service-role key private. This bot-hosting package and `LinkingBot/` use the same database queue and message mappings; do not run two copies of the worker against the same queue unless you intentionally want multiple workers.
+## Development and checks
 
-## Notes
+```bash
+cd BotLinking
+npm install
+cp .env.example .env
+# Fill in the local secrets
+npm run dev
+```
 
-- Only newly created messages are imported; no historical channel backfill is performed.
-- Discord bot/webhook messages are ignored to prevent bridge loops.
-- The bridge preserves Discord message content/embeds and uses `[Discord]` / `[Voax]` attribution.
-- The hosting service must support a persistent Node.js process and outbound Discord Gateway connections (WebSocket).
+```bash
+npm run typecheck
+npm test
+npm run build
+npm start
+```
+
+## Database and Vercel setup
+
+Apply all SQL migrations in `supabase/migrations` in timestamp order before enabling the integration. The website OAuth API at `api/linking/oauth.ts` runs on Vercel and needs server-side `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_BOT_TOKEN`, `DISCORD_REDIRECT_URI`, and `VOAX_PUBLIC_URL`.
+
+Set the redirect URI to `https://YOUR_VOAX_DOMAIN/api/linking/oauth?action=callback`. Keep the bot token, client secret, and Supabase service-role key out of browser-exposed environment variables.
+
+## Runtime behavior
+
+- Only newly created messages are imported; there is no historical channel backfill.
+- Discord and Voax messages synchronize both ways, including supported edits and deletes.
+- Discord Markdown is preserved as text for Voax's safe renderer; message attribution is `[Discord]` / `[Voax]`.
+- Linked user mentions are translated where an identity connection exists; unlinked mentions remain readable.
+- The persistent Supabase outbox provides idempotency, ordering, retries, and recovery.
+- Bot/webhook-authored Discord messages are ignored to prevent loops.
+- Attachments and supported embeds are relayed where accessible. External Discord URLs may expire; permanent mirroring is not guaranteed.
+- Only standard Discord text/announcement channels and standard Voax text channels are supported in this phase.
+
+## One worker only
+
+Both bot-hosting.net and Docker use this same `BotLinking` runtime and the same Supabase queue. Do not run multiple copies unless you intentionally want to scale workers and have verified your queue/ordering behavior.
