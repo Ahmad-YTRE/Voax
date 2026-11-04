@@ -4316,3 +4316,23 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .profile-popout-avatar>i.presence-indicator{z-index:2}
 .profile-popout-avatar>i.presence-idle::after{background:#111318}
 .profile-popout-avatar>i.presence-do-not-disturb::after{height:3px;top:calc(50% - 1.5px)}
+
+
+/* Discord Markdown message formatting */
+.message-content > p{margin:0 0 5px;white-space:normal;overflow-wrap:anywhere}
+.message-content > p:last-child{margin-bottom:0}
+.message-content h3,.message-content h4,.message-content h5{margin:8px 0 4px;color:var(--text,#eef2f8);font-weight:800;line-height:1.3}
+.message-content h3{font-size:1.18em}
+.message-content h4{font-size:1.08em}
+.message-content h5{font-size:1em}
+.message-content ul,.message-content ol{margin:5px 0 8px;padding-left:24px}
+.message-content li{padding-left:2px;margin:2px 0}
+.message-content blockquote{margin:6px 0;padding:2px 0 2px 12px;border-left:3px solid var(--muted,#8993a5);color:var(--muted,#aab4c5)}
+.message-content blockquote p{margin:3px 0}
+.message-content hr{height:1px;margin:9px 0;border:0;background:var(--border,#344052)}
+.message-inline-code{padding:2px 5px;border:1px solid var(--border,#344052);border-radius:4px;background:rgba(0,0,0,.22);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em}
+.message-code-block{max-width:100%;margin:7px 0;padding:11px 13px;overflow-x:auto;border:1px solid var(--border,#344052);border-radius:8px;background:rgba(0,0,0,.28);color:var(--text,#eef2f8);white-space:pre}
+.message-code-block code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.55}
+.message-spoiler{border-radius:3px;background:currentColor;color:transparent;cursor:pointer;transition:color .12s ease}
+.message-spoiler:hover,.message-spoiler:focus{background:rgba(127,137,153,.22);color:inherit;outline:none}
+@media(prefers-reduced-motion:reduce){.message-spoiler{transition:none}}
