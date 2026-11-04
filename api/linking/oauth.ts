@@ -65,7 +65,7 @@ export default async function handler(req:any,res:any){
    const returnPath=String(req.body?.returnPath||"");
    const safeReturnPath=purpose==="install"&&(returnPath.startsWith("/channel/")||returnPath.startsWith("/channels/"))?returnPath:"";
    const nonce=randomBytes(32).toString("base64url");
-   const state=purpose==="install"&&safeReturnPath?nonce+"."+btoa(safeReturnPath).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/g,""):nonce;
+   const state=purpose==="install"&&safeReturnPath?nonce+"."+btoa(safeReturnPath).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,""):nonce;
    const {error}=await admin.from("discord_oauth_states").insert({state_hash:hash(state),voax_user_id:user.id,voax_server_id:purpose==="install"?serverId:null,purpose,expires_at:new Date(Date.now()+600000).toISOString()});if(error)throw error;
    const q=new URLSearchParams({client_id:clientId,response_type:"code",redirect_uri:callbackUri(req),scope:"identify guilds",state});return reply(res,200,{authorize_url:"https://discord.com/oauth2/authorize?"+q.toString()});
   }
