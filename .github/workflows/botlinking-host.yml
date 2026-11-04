@@ -1,0 +1,30 @@
+name: BotLinking Host Package
+on:
+  push:
+    branches: [main, feature/voax-linking]
+    paths:
+      - "BotLinking/**"
+      - ".github/workflows/botlinking-host.yml"
+  pull_request:
+    paths:
+      - "BotLinking/**"
+      - ".github/workflows/botlinking-host.yml"
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: BotLinking
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: BotLinking/package-lock.json
+      - name: Install dependencies
+        run: npm install --package-lock-only --ignore-scripts && npm ci
+      - name: Check entry point syntax
+        run: node --check index.js
+      - name: Verify package start script
+        run: node -e "const p=require('./package.json'); if(p.main!=='index.js'||p.scripts.start!=='node index.js') process.exit(1)"
