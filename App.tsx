@@ -446,15 +446,15 @@ function MessageContent({ text, onJoinInvite, onOpenProfile, servers = [], membe
   const inlinePattern=new RegExp("(\\|\\|[\\s\\S]+?\\|\\||\\*\\*[\\s\\S]+?\\*\\*|__[\\s\\S]+?__|~~[\\s\\S]+?~~|"+tick+"[^"+tick+"\\n]+"+tick+"|\\*[^*\\n]+\\*|_[^_\\n]+_)","g");
   const renderInline=(value:string,keyPrefix:string,depth=0):React.ReactNode[]=>{
     if(depth>6)return renderPlain(value,keyPrefix);
-    const output:React.ReactNode[]=[];let cursor=0;let match:RegExpExecArray|null;
-    while((match=inlinePattern.exec(value))){if(match.index>cursor)output.push(...renderPlain(value.slice(cursor,match.index),keyPrefix+"-"+cursor));const token=match[0],key=keyPrefix+"-md-"+match.index,inner=token.slice(token.startsWith("||")||token.startsWith("**")||token.startsWith("__")||token.startsWith("~~")?2:1,-(token.startsWith("||")||token.startsWith("**")||token.startsWith("__")||token.startsWith("~~")?2:1));
+    const syntax=new RegExp(inlinePattern.source,"g");const output:React.ReactNode[]=[];let cursor=0;let match:RegExpExecArray|null;
+    while((match=syntax.exec(value))){if(match.index>cursor)output.push(...renderPlain(value.slice(cursor,match.index),keyPrefix+"-"+cursor));const token=match[0],key=keyPrefix+"-md-"+match.index,inner=token.slice(token.startsWith("||")||token.startsWith("**")||token.startsWith("__")||token.startsWith("~~")?2:1,-(token.startsWith("||")||token.startsWith("**")||token.startsWith("__")||token.startsWith("~~")?2:1));
       if(token.startsWith("||"))output.push(<span key={key} className="message-spoiler" tabIndex={0}>{renderInline(inner,key,depth+1)}</span>);
       else if(token.startsWith("**"))output.push(<strong key={key}>{renderInline(inner,key,depth+1)}</strong>);
       else if(token.startsWith("__"))output.push(<u key={key}>{renderInline(inner,key,depth+1)}</u>);
       else if(token.startsWith("~~"))output.push(<del key={key}>{renderInline(inner,key,depth+1)}</del>);
       else if(token.charCodeAt(0)===96)output.push(<code key={key} className="message-inline-code">{inner}</code>);
       else output.push(<em key={key}>{renderInline(inner,key,depth+1)}</em>);
-      cursor=inlinePattern.lastIndex;
+      cursor=syntax.lastIndex;
     }
     if(cursor<value.length)output.push(...renderPlain(value.slice(cursor),keyPrefix+"-"+cursor));
     return output;
