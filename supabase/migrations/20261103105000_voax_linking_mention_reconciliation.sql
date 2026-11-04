@@ -81,4 +81,4 @@ end;
 $$;
 
 revoke all on function public.update_discord_bridge_message(uuid, text, jsonb, jsonb, uuid[]) from public, anon, authenticated;
-grant execute on function public.update_discord_bridge_message(uuid, text, jsonb, uuid[]) to service_role;
+grant execute on function public.update_discord_bridge_message(uuid, text, jsonb, jsonb, uuid[]) to service_role;
