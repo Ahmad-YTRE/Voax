@@ -463,7 +463,7 @@ function MessageContent({ text, onJoinInvite, onOpenProfile, servers = [], membe
     if(depth>6)return renderPlain(value,keyPrefix);
     const syntax=new RegExp(inlinePattern.source,"g");const output:React.ReactNode[]=[];let cursor=0;let match:RegExpExecArray|null;
     while((match=syntax.exec(value))){if(match.index>cursor)output.push(...renderPlain(value.slice(cursor,match.index),keyPrefix+"-"+cursor));const token=match[0],key=keyPrefix+"-md-"+match.index,inner=token.slice(token.startsWith("||")||token.startsWith("**")||token.startsWith("__")||token.startsWith("~~")?2:1,-(token.startsWith("||")||token.startsWith("**")||token.startsWith("__")||token.startsWith("~~")?2:1));
-      const masked=token.match(/^\\[([^\\]]+)\\]\\((https?:\\/\\/[^)\\s]+)\\)$/);if(masked)output.push(<a key={key} href={masked[2]} target="_blank" rel="noopener noreferrer">{renderInline(masked[1],key,depth+1)}</a>);
+      const masked=token.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/);if(masked)output.push(<a key={key} href={masked[2]} target="_blank" rel="noopener noreferrer">{renderInline(masked[1],key,depth+1)}</a>);
       else if(token.startsWith("||"))output.push(<span key={key} className="message-spoiler" tabIndex={0}>{renderInline(inner,key,depth+1)}</span>);
       else if(token.startsWith("**"))output.push(<strong key={key}>{renderInline(inner,key,depth+1)}</strong>);
       else if(token.startsWith("__"))output.push(<u key={key}>{renderInline(inner,key,depth+1)}</u>);
