@@ -19,7 +19,8 @@ function decodeReturnPath(state:string){
  const parts=state.split(".");
  if(parts.length!==2)return "";
  try{
-  const path=Buffer.from(parts[1],"base64url").toString("utf8");
+  const encoded=parts[1].replace(/-/g,"+").replace(/_/g,"/");
+  const path=atob(encoded.padEnd(Math.ceil(encoded.length/4)*4,"="));
   return path.startsWith("/channel/")||path.startsWith("/channels/")?path:"";
  }catch{return "";}
 }
@@ -53,7 +54,7 @@ export default async function handler(req:any,res:any){
    await admin.from("discord_oauth_states").update({discord_user_id:me.id,discord_username:me.global_name||me.username,discord_avatar_url:avatar,guilds:allowed}).eq("state_hash",hash(state));
    const origin=publicOrigin(req),returnPath=decodeReturnPath(state);
    const destination=returnPath?origin+returnPath:origin+"/app";
-   return res.redirect(302,destination+(returnPath?"?":"?")+"discord_install_state="+encodeURIComponent(state)+"&discord_install_server="+encodeURIComponent(st.voax_server_id));
+   return res.redirect(302,destination+"?discord_install_state="+encodeURIComponent(state)+"&discord_install_server="+encodeURIComponent(st.voax_server_id));
   }catch(e){return res.redirect(302,publicOrigin(req)+"/app?discord_error="+encodeURIComponent(e instanceof Error?e.message:"OAuth failed."));}
  }
  try{
@@ -64,7 +65,7 @@ export default async function handler(req:any,res:any){
    const returnPath=String(req.body?.returnPath||"");
    const safeReturnPath=purpose==="install"&&(returnPath.startsWith("/channel/")||returnPath.startsWith("/channels/"))?returnPath:"";
    const nonce=randomBytes(32).toString("base64url");
-   const state=purpose==="install"&&safeReturnPath?nonce+"."+Buffer.from(safeReturnPath).toString("base64url"):nonce;
+   const state=purpose==="install"&&safeReturnPath?nonce+"."+btoa(safeReturnPath).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/g,""):nonce;
    const {error}=await admin.from("discord_oauth_states").insert({state_hash:hash(state),voax_user_id:user.id,voax_server_id:purpose==="install"?serverId:null,purpose,expires_at:new Date(Date.now()+600000).toISOString()});if(error)throw error;
    const q=new URLSearchParams({client_id:clientId,response_type:"code",redirect_uri:callbackUri(req),scope:"identify guilds",state});return reply(res,200,{authorize_url:"https://discord.com/oauth2/authorize?"+q.toString()});
   }
