@@ -7,8 +7,22 @@ const anonKey=env.SUPABASE_ANON_KEY||env.VITE_SUPABASE_PUBLISHABLE_KEY||"";
 const serviceKey=env.SUPABASE_SERVICE_ROLE_KEY||"";
 const clientId=env.DISCORD_CLIENT_ID||"";
 const clientSecret=env.DISCORD_CLIENT_SECRET||"";
-const redirectUri=env.DISCORD_REDIRECT_URI||"";
-const publicUrl=env.VOAX_PUBLIC_URL||"https://voax.app";
+const configuredPublicOrigin=String(env.VOAX_PUBLIC_URL||"https://staging.voax.cc.cd").replace(/\\/+$/,"");
+const supportedHosts=new Set(["staging.voax.cc.cd","voax.cc.cd"]);
+function publicOrigin(req:any){
+ const forwarded=String(req.headers?.["x-forwarded-host"]||"").split(",")[0].trim().toLowerCase();
+ const host=String(forwarded||req.headers?.host||"").split(",")[0].trim().toLowerCase().split(":")[0];
+ return supportedHosts.has(host)?"https://"+host:configuredPublicOrigin;
+}
+function callbackUri(req:any){return publicOrigin(req)+"/api/linking/oauth?action=callback";}
+function decodeReturnPath(state:string){
+ const parts=state.split(".");
+ if(parts.length!==2)return "";
+ try{
+  const path=Buffer.from(parts[1],"base64url").toString("utf8");
+  return path.startsWith("/channel/")||path.startsWith("/channels/")?path:"";
+ }catch{return "";}
+}
 const permissions="0";
 const admin=createClient(url,serviceKey,{auth:{persistSession:false,autoRefreshToken:false}});
 const userClient=createClient(url,anonKey,{auth:{persistSession:false,autoRefreshToken:false}});
@@ -23,30 +37,36 @@ export default async function handler(req:any,res:any){
  const action=String(req.query?.action||"");
  if(action==="callback"&&req.method==="GET"){
   try{
-   if(req.query.error)return res.redirect(302,publicUrl+"/app?discord_error="+encodeURIComponent(String(req.query.error)));
+   if(req.query.error)return res.redirect(302,publicOrigin(req)+"/app?discord_error="+encodeURIComponent(String(req.query.error)));
    const code=String(req.query.code||""),state=String(req.query.state||"");if(!code||!state)return reply(res,400,{error:"Invalid OAuth callback."});
    const {data:st}=await admin.from("discord_oauth_states").select("*").eq("state_hash",hash(state)).gt("expires_at",new Date().toISOString()).maybeSingle();if(!st)return reply(res,400,{error:"Authorization expired. Start again in Voax."});
-   const tokenR=await fetch("https://discord.com/api/v10/oauth2/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:clientId,client_secret:clientSecret,grant_type:"authorization_code",code,redirect_uri:redirectUri})});
+   const tokenR=await fetch("https://discord.com/api/v10/oauth2/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:clientId,client_secret:clientSecret,grant_type:"authorization_code",code,redirect_uri:callbackUri(req)})});
    const token=await tokenR.json() as any;if(!tokenR.ok)throw new Error("Discord authorization could not be verified.");
    const meR=await fetch("https://discord.com/api/v10/users/@me",{headers:{Authorization:"Bearer "+token.access_token}});const me=await meR.json() as any;if(!meR.ok||!me.id)throw new Error("Discord identity verification failed.");
    const avatar=me.avatar?"https://cdn.discordapp.com/avatars/"+me.id+"/"+me.avatar+".png?size=128":null;
    if(st.purpose==="connect_account"){
     const {error}=await admin.from("discord_user_connections").upsert({voax_user_id:st.voax_user_id,discord_user_id:me.id,discord_username:me.global_name||me.username,discord_global_name:me.global_name,discord_avatar_url:avatar},{onConflict:"voax_user_id"});if(error)throw error;
-    await admin.from("discord_oauth_states").delete().eq("state_hash",hash(state));return res.redirect(302,publicUrl+"/app?discord_account=connected");
+    await admin.from("discord_oauth_states").delete().eq("state_hash",hash(state));return res.redirect(302,publicOrigin(req)+"/app?discord_account=connected");
    }
    const guildR=await fetch("https://discord.com/api/v10/users/@me/guilds",{headers:{Authorization:"Bearer "+token.access_token}});const guilds=await guildR.json() as any[];if(!guildR.ok||!Array.isArray(guilds))throw new Error("Could not retrieve Discord servers.");
    const allowed=guilds.filter(g=>{const p=BigInt(g.permissions||"0");return (p&32n)!==0n||(p&8n)!==0n;}).map(g=>({id:g.id,name:g.name,icon:g.icon,owner:Boolean(g.owner)}));
    await admin.from("discord_oauth_states").update({discord_user_id:me.id,discord_username:me.global_name||me.username,discord_avatar_url:avatar,guilds:allowed}).eq("state_hash",hash(state));
-   return res.redirect(302,publicUrl+"/app?discord_install_state="+encodeURIComponent(state));
-  }catch(e){return res.redirect(302,publicUrl+"/app?discord_error="+encodeURIComponent(e instanceof Error?e.message:"OAuth failed."));}
+   const origin=publicOrigin(req),returnPath=decodeReturnPath(state);
+   const destination=returnPath?origin+returnPath:origin+"/app";
+   return res.redirect(302,destination+(returnPath?"?":"?")+"discord_install_state="+encodeURIComponent(state)+"&discord_install_server="+encodeURIComponent(st.voax_server_id));
+  }catch(e){return res.redirect(302,publicOrigin(req)+"/app?discord_error="+encodeURIComponent(e instanceof Error?e.message:"OAuth failed."));}
  }
  try{
   const user=await auth(req);
   if(action==="start"&&req.method==="POST"){
    const purpose=req.body?.purpose||"install",serverId=req.body?.serverId;if(!["install","connect_account"].includes(purpose))return reply(res,400,{error:"Invalid purpose."});
    if(purpose==="install"&&(!serverId||!(await canManage(String(serverId),user.id))))return reply(res,403,{error:"Manage Integrations permission is required."});
-   const state=randomBytes(32).toString("base64url");const {error}=await admin.from("discord_oauth_states").insert({state_hash:hash(state),voax_user_id:user.id,voax_server_id:purpose==="install"?serverId:null,purpose,expires_at:new Date(Date.now()+600000).toISOString()});if(error)throw error;
-   const q=new URLSearchParams({client_id:clientId,response_type:"code",redirect_uri:redirectUri,scope:"identify guilds",state});return reply(res,200,{authorize_url:"https://discord.com/oauth2/authorize?"+q.toString()});
+   const returnPath=String(req.body?.returnPath||"");
+   const safeReturnPath=purpose==="install"&&(returnPath.startsWith("/channel/")||returnPath.startsWith("/channels/"))?returnPath:"";
+   const nonce=randomBytes(32).toString("base64url");
+   const state=purpose==="install"&&safeReturnPath?nonce+"."+Buffer.from(safeReturnPath).toString("base64url"):nonce;
+   const {error}=await admin.from("discord_oauth_states").insert({state_hash:hash(state),voax_user_id:user.id,voax_server_id:purpose==="install"?serverId:null,purpose,expires_at:new Date(Date.now()+600000).toISOString()});if(error)throw error;
+   const q=new URLSearchParams({client_id:clientId,response_type:"code",redirect_uri:callbackUri(req),scope:"identify guilds",state});return reply(res,200,{authorize_url:"https://discord.com/oauth2/authorize?"+q.toString()});
   }
   if(action==="guilds"&&req.method==="GET"){
    const state=String(req.query.state||"");const {data}=await admin.from("discord_oauth_states").select("guilds").eq("state_hash",hash(state)).eq("voax_user_id",user.id).eq("purpose","install").gt("expires_at",new Date().toISOString()).maybeSingle();if(!data)return reply(res,404,{error:"Selection expired."});return reply(res,200,{guilds:data.guilds||[]});
