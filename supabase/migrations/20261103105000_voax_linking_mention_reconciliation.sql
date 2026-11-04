@@ -2,6 +2,7 @@
 create or replace function public.update_discord_bridge_message(
   p_message_id uuid,
   p_body text,
+  p_attachments jsonb,
   p_metadata jsonb,
   p_mention_user_ids uuid[] default '{}'::uuid[]
 ) returns void
@@ -41,6 +42,7 @@ begin
 
   update public.messages
     set body = coalesce(p_body, ''),
+        attachments = coalesce(p_attachments, '[]'::jsonb),
         edited_at = now(),
         bridge_metadata = coalesce(p_metadata, '{}'::jsonb)
   where id = p_message_id;
@@ -78,5 +80,5 @@ begin
 end;
 $$;
 
-revoke all on function public.update_discord_bridge_message(uuid, text, jsonb, uuid[]) from public, anon, authenticated;
+revoke all on function public.update_discord_bridge_message(uuid, text, jsonb, jsonb, uuid[]) from public, anon, authenticated;
 grant execute on function public.update_discord_bridge_message(uuid, text, jsonb, uuid[]) to service_role;
