@@ -2256,6 +2256,11 @@ function App({ session }: { session: Session }) {
         setActiveServer(channel.serverId || serverId);
         setActive(channel.id);
         setView("channel");
+        const callbackParams = new URLSearchParams(window.location.search);
+        if (callbackParams.has("discord_install_state")) {
+          setServerSettingsSection("integrations");
+          setModal("manageServer");
+        }
         setShowLanding(false);
         void markChannelRead(channel.id);
         return;
