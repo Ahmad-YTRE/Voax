@@ -431,21 +431,54 @@ function LinkPreview({ url }: { url: string }) {
   </a>;
 }
 function MessageContent({ text, onJoinInvite, onOpenProfile, servers = [], members = [], roles = [], onlineCounts = {} }: { text: string; onJoinInvite: (code: string) => void; onOpenProfile: (person: Person) => void; servers?: Server[]; members?: Person[]; roles?: ServerRole[]; onlineCounts?: Record<string,number> }) {
-  const mentionLabels = [...members.map(person => ({ label: person.name, type: "user" as const })), ...roles.map(role => ({ label: role.name, type: "role" as const }))].filter(item => item.label.trim() && item.label !== "User").sort((a, b) => b.label.length - a.label.length);
-  const labelPattern = mentionLabels.length ? mentionLabels.map(item => escapeMentionLabel(item.label)).join("|") + "|" : "";
-  const tokens = text.split(new RegExp("(https?:\\/\\/[^\\s<>()]+|\\/invite\\/[A-Za-z0-9_-]+|@everyone\\b|@here\\b|@(?:" + labelPattern + "[A-Za-z0-9_-]+)(?=$|[^A-Za-z0-9_]))", "gi")).filter(Boolean);
-  const invites = [...new Set((text.match(/(?:https?:\/\/[^\s<>()]+)?\/invite\/([A-Za-z0-9_-]+)/gi) || []).map(value => value.match(/\/invite\/([A-Za-z0-9_-]+)/i)?.[1]).filter((value): value is string => Boolean(value)))];
-  const urls = [...new Set((text.match(/https?:\/\/[^\s<>()]+/gi) || []).map(value => value.replace(/[.,!?;:]+$/, "")))].filter(value => !/\/invite\//i.test(value));
-  return <div className="message-content"><p>{tokens.map((token, index) => {
-    const invite = token.match(/(?:https?:\/\/[^/]+)?\/invite\/([A-Za-z0-9_-]+)/i);
-    if (invite) { const linkedServer = servers.find(server => server.inviteCode === invite[1]); return <a key={index} className="invite-inline-link" href={"/invite/" + invite[1]} onClick={event => { event.preventDefault(); window.location.assign("/invite/" + invite[1]); }}>{linkedServer ? "Invite to " + linkedServer.name : "Voax server invite"}</a>; }
-    if (/^https?:\/\//i.test(token)) return <a key={index} href={token} target="_blank" rel="noopener noreferrer">{token}</a>;
-    if (/^@.+$/s.test(token)) { const label=token.slice(1).toLocaleLowerCase(); const role=roles.find(item=>item.name.toLocaleLowerCase()===label); const person=members.find(item=>item.name.toLocaleLowerCase()===label); const kind=/^everyone$/i.test(label)?"everyone":/^here$/i.test(label)?"here":role?"role":person?"user":"generic"; if(kind==="user"&&person) return <button key={index} type="button" className="mention-pill mention-pill-user mention-pill-clickable" title={"View "+person.name+"’s profile"} onClick={event=>{event.stopPropagation();onOpenProfile(person);}}><span className="mention-pill-avatar">{person.avatarUrl?<img src={person.avatarUrl} alt="" loading="lazy"/>:initials(person.name)}</span><span>{token}</span></button>; return <span key={index} className={"mention-pill mention-pill-"+kind}>{token}</span>; }
-    return <React.Fragment key={index}>{token}</React.Fragment>;
-  })}</p>
-    {invites.map(code => <InvitePreviewCard key={code} code={code} onlineCounts={onlineCounts} onJoin={() => onJoinInvite(code)} />)}
-    {urls.map(url => <LinkPreview key={url} url={url} />)}
-  </div>;
+  const mentionLabels = [...members.map(person => person.name), ...roles.map(role => role.name)].filter(label => label.trim() && label !== "User").sort((a,b)=>b.length-a.length);
+  const labelPattern = mentionLabels.length ? mentionLabels.map(escapeMentionLabel).join("|")+"|" : "";
+  const plainPattern = new RegExp("(https?:\\/\\/[^\\s<>()]+|\\/invite\\/[A-Za-z0-9_-]+|@everyone\\b|@here\\b|@(?:"+labelPattern+"[A-Za-z0-9_-]+)(?=$|[^A-Za-z0-9_]))","gi");
+  const renderPlain = (value:string,keyPrefix:string):React.ReactNode[] => value.split(plainPattern).filter(Boolean).map((token,index)=>{
+    const key=keyPrefix+"-"+index;
+    const invite=token.match(/(?:https?:\/\/[^/]+)?\/invite\/([A-Za-z0-9_-]+)/i);
+    if(invite){const linked=servers.find(server=>server.inviteCode===invite[1]);return <a key={key} className="invite-inline-link" href={"/invite/"+invite[1]} onClick={event=>{event.preventDefault();window.location.assign("/invite/"+invite[1]);}}>{linked?"Invite to "+linked.name:"Voax server invite"}</a>;}
+    if(/^https?:\/\//i.test(token)){const clean=token.replace(/[.,!?;:]+$/,"");return <React.Fragment key={key}><a href={clean} target="_blank" rel="noopener noreferrer">{clean}</a>{token.slice(clean.length)}</React.Fragment>;}
+    if(/^@.+$/s.test(token)){const label=token.slice(1).toLocaleLowerCase();const role=roles.find(item=>item.name.toLocaleLowerCase()===label);const person=members.find(item=>item.name.toLocaleLowerCase()===label);const kind=/^everyone$/i.test(label)?"everyone":/^here$/i.test(label)?"here":role?"role":person?"user":"generic";if(kind==="user"&&person)return <button key={key} type="button" className="mention-pill mention-pill-user mention-pill-clickable" title={"View "+person.name+"’s profile"} onClick={event=>{event.stopPropagation();onOpenProfile(person);}}><span className="mention-pill-avatar">{person.avatarUrl?<img src={person.avatarUrl} alt="" loading="lazy"/>:initials(person.name)}</span><span>{token}</span></button>;return <span key={key} className={"mention-pill mention-pill-"+kind}>{token}</span>;}
+    return <React.Fragment key={key}>{token}</React.Fragment>;
+  });
+  const tick=String.fromCharCode(96);
+  const inlinePattern=new RegExp("(\\|\\|[\\s\\S]+?\\|\\||\\*\\*[\\s\\S]+?\\*\\*|__[\\s\\S]+?__|~~[\\s\\S]+?~~|"+tick+"[^"+tick+"\\n]+"+tick+"|\\*[^*\\n]+\\*|_[^_\\n]+_)","g");
+  const renderInline=(value:string,keyPrefix:string,depth=0):React.ReactNode[]=>{
+    if(depth>6)return renderPlain(value,keyPrefix);
+    const output:React.ReactNode[]=[];let cursor=0;let match:RegExpExecArray|null;
+    while((match=inlinePattern.exec(value))){if(match.index>cursor)output.push(...renderPlain(value.slice(cursor,match.index),keyPrefix+"-"+cursor));const token=match[0],key=keyPrefix+"-md-"+match.index,inner=token.slice(token.startsWith("||")||token.startsWith("**")||token.startsWith("__")||token.startsWith("~~")?2:1,-(token.startsWith("||")||token.startsWith("**")||token.startsWith("__")||token.startsWith("~~")?2:1));
+      if(token.startsWith("||"))output.push(<span key={key} className="message-spoiler" tabIndex={0}>{renderInline(inner,key,depth+1)}</span>);
+      else if(token.startsWith("**"))output.push(<strong key={key}>{renderInline(inner,key,depth+1)}</strong>);
+      else if(token.startsWith("__"))output.push(<u key={key}>{renderInline(inner,key,depth+1)}</u>);
+      else if(token.startsWith("~~"))output.push(<del key={key}>{renderInline(inner,key,depth+1)}</del>);
+      else if(token.charCodeAt(0)===96)output.push(<code key={key} className="message-inline-code">{inner}</code>);
+      else output.push(<em key={key}>{renderInline(inner,key,depth+1)}</em>);
+      cursor=inlinePattern.lastIndex;
+    }
+    if(cursor<value.length)output.push(...renderPlain(value.slice(cursor),keyPrefix+"-"+cursor));
+    return output;
+  };
+  const lines=text.replace(/\r\n?/g,"\n").split("\n");
+  const blocks:React.ReactNode[]=[];let paragraph:string[]=[];let list:string[]=[];let listType:"ul"|"ol"|null=null;
+  const flushParagraph=()=>{if(!paragraph.length)return;blocks.push(<p key={"p"+blocks.length}>{paragraph.map((line,index)=><React.Fragment key={index}>{index>0&&<br/>}{renderInline(line,"p"+blocks.length+"-"+index)}</React.Fragment>)}</p>);paragraph=[];};
+  const flushList=()=>{if(!listType||!list.length){list=[];listType=null;return;}const items=list.map((item,index)=><li key={index}>{renderInline(item,"li"+blocks.length+"-"+index)}</li>);blocks.push(listType==="ol"?<ol key={"ol"+blocks.length}>{items}</ol>:<ul key={"ul"+blocks.length}>{items}</ul>);list=[];listType=null;};
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    if(line.startsWith(tick.repeat(3))){flushParagraph();flushList();const language=line.slice(3).trim().split(/\\s+/)[0];const code:string[]=[];i++;while(i<lines.length&&!lines[i].startsWith(tick.repeat(3)))code.push(lines[i++]);blocks.push(<pre className="message-code-block" key={"code"+blocks.length}><code className={language?"language-"+language:undefined}>{code.join("\n")}</code></pre>);continue;}
+    if(!line.trim()){flushParagraph();flushList();continue;}
+    const heading=line.match(/^ {0,3}(#{1,3})\\s+(.+)$/);
+    if(heading){flushParagraph();flushList();const content=renderInline(heading[2],"heading"+blocks.length);blocks.push(heading[1].length===1?<h3 key={"h"+blocks.length}>{content}</h3>:heading[1].length===2?<h4 key={"h"+blocks.length}>{content}</h4>:<h5 key={"h"+blocks.length}>{content}</h5>);continue;}
+    if(/^ {0,3}(?:-{3,}|\\*{3,}|_{3,})\\s*$/.test(line)){flushParagraph();flushList();blocks.push(<hr key={"hr"+blocks.length}/>);continue;}
+    if(/^ {0,3}>/.test(line)){flushParagraph();flushList();const quote:string[]=[];while(i<lines.length&&/^ {0,3}>/.test(lines[i]))quote.push(lines[i++].replace(/^ {0,3}>\\s?/,""));i--;blocks.push(<blockquote key={"quote"+blocks.length}>{quote.map((part,index)=><p key={index}>{renderInline(part,"quote"+blocks.length+"-"+index)}</p>)}</blockquote>);continue;}
+    const unordered=line.match(/^ {0,3}[-*+]\\s+(.+)$/),ordered=line.match(/^ {0,3}\\d+[.)]\\s+(.+)$/);
+    if(unordered||ordered){flushParagraph();const next=ordered?"ol":"ul";if(listType&&listType!==next)flushList();listType=next;list.push((unordered||ordered)![1]);continue;}
+    flushList();paragraph.push(line);
+  }
+  flushParagraph();flushList();
+  const inviteCodes=[...new Set((text.match(/(?:https?:\\/\\/[^\\s<>()]+)?\\/invite\\/([A-Za-z0-9_-]+)/gi)||[]).map(value=>value.match(/\\/invite\\/([A-Za-z0-9_-]+)/i)?.[1]).filter((value):value is string=>Boolean(value)))];
+  const urls=[...new Set((text.match(/https?:\\/\\/[^\\s<>()]+/gi)||[]).map(value=>value.replace(/[.,!?;:]+$/,"")))].filter(value=>!/\\/invite\\//i.test(value));
+  return <div className="message-content">{blocks}{inviteCodes.map(code=><InvitePreviewCard key={code} code={code} onlineCounts={onlineCounts} onJoin={()=>onJoinInvite(code)}/>)}{urls.map(url=><LinkPreview key={url} url={url}/>)}</div>;
 }
 
 
