@@ -1,4 +1,4 @@
-name: BotLinking Host Package
+name: BotLinking checks
 on:
   push:
     branches: [main, feature/voax-linking]
@@ -6,11 +6,14 @@ on:
       - "BotLinking/**"
       - ".github/workflows/botlinking-host.yml"
   pull_request:
+    branches: [main]
     paths:
       - "BotLinking/**"
       - ".github/workflows/botlinking-host.yml"
+permissions:
+  contents: read
 jobs:
-  validate:
+  bot-checks:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -19,10 +22,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Check entry point syntax
+      - name: Check bot-hosting.net entry point
         run: node --check index.js
-      - name: Verify package start script
+      - name: Type-check canonical worker
+        run: npm run typecheck
+      - name: Run bot tests
+        run: npm test
+      - name: Verify host startup metadata
         run: node -e "const p=require('./package.json'); if(p.main!=='index.js'||p.scripts.start!=='node index.js') process.exit(1)"
