@@ -1,13 +1,14 @@
 #!/usr/bin/env node
-"use strict";
+// bot-hosting.net starts this entry point. The single canonical bot runtime
+// lives in src/ and is executed with tsx so hosted, Docker, and local runs
+// share exactly the same Gateway, bridge, queue, retry, and shutdown code.
+import { spawn } from "node:child_process";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-// bot-hosting.net starts this CommonJS file. The single canonical bot runtime
-// lives in src/ and is executed with tsx so local and hosted deployments use
-// exactly the same Gateway, bridge, queue, retry, and shutdown implementation.
-const { spawn } = require("node:child_process");
-
+const root = dirname(fileURLToPath(import.meta.url));
 const child = spawn(process.execPath, ["--import", "tsx", "src/index.ts"], {
-  cwd: __dirname,
+  cwd: root,
   env: process.env,
   stdio: "inherit"
 });
