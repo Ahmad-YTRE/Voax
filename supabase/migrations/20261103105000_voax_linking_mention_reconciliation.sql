@@ -49,7 +49,10 @@ begin
   where message_id = p_message_id
     and mention_types @> array['user']::text[];
 
-  foreach v_target in array coalesce(p_mention_user_ids, '{}'::uuid[]) loop
+  for v_target in
+    select distinct mentioned_user_id
+    from unnest(coalesce(p_mention_user_ids, '{}'::uuid[])) as mentioned_user_id
+  loop
     if exists (
       select 1 from public.server_members sm
       where sm.server_id = v_server_id and sm.user_id = v_target
