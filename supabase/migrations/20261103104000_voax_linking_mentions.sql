@@ -6,7 +6,7 @@ create unique index if not exists messages_discord_bridge_external_uidx
 create or replace function public.create_discord_bridge_message(
  p_channel_id uuid,p_author_id uuid,p_body text,p_attachments jsonb,p_metadata jsonb,
  p_external_id text,p_reply_to uuid,p_mention_user_ids uuid[] default '{}'::uuid[]
-) returns uuid language plpgsql set search_path='' as $
+) returns uuid language plpgsql set search_path='' as $$
 declare v_server_id uuid;v_installer uuid;v_message_id uuid;v_target uuid;
 begin
  select l.voax_server_id,i.installed_by into v_server_id,v_installer
