@@ -1227,10 +1227,12 @@ function App({ session }: { session: Session }) {
     if((view!=="channel"&&view!=="dm")||messagesLoading)return;
     const scrollContainer=document.querySelector<HTMLElement>(".message-scroll");
     if(!scrollContainer)return;
-    const unreadDivider=unreadBoundaryCount>0?scrollContainer.querySelector<HTMLElement>(".unread-message-divider"):null;
+    const boundaryKey=view==="channel"?keyFor("channel",active):view==="dm"&&activeConversationId?"dm:"+activeConversationId:"";
+    const boundaryCount=unreadBoundaryCounts[boundaryKey]||0;
+    const unreadDivider=boundaryCount>0?scrollContainer.querySelector<HTMLElement>(".unread-message-divider"):null;
     if(unreadDivider)unreadDivider.scrollIntoView({block:"start"});
     else scrollContainer.scrollTop=scrollContainer.scrollHeight;
-  },[active,activeKey,view,messagesLoading,unreadBoundaryCount]);
+  },[active,activeKey,view,messagesLoading,unreadBoundaryCounts,activeConversationId]);
 
   useEffect(()=>{
     if(!pendingMentionJumpId||view!=="channel"||messagesLoading)return;
