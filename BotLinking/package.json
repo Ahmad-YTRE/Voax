@@ -1,0 +1,18 @@
+{
+  "name": "voax-linking-bot-hosting",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Voax Discord channel bridge entry point for bot-hosting.net",
+  "main": "index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.81.1",
+    "discord.js": "^14.22.1"
+  }
+}
