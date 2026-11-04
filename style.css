@@ -4371,3 +4371,8 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 /* Discord-style unread message boundary. */
 .unread-message-divider{display:flex;align-items:center;gap:12px;margin:18px 16px 12px;color:#f23f43;font-size:10px;font-weight:850;letter-spacing:.06em;line-height:1;white-space:nowrap;}
 .unread-message-divider::before,.unread-message-divider::after{content:"";height:1px;flex:1;background:#f23f43;opacity:.8;}
+
+/* User profile banners */
+.profile-popout-banner[style*="url("]{background-repeat:no-repeat}
+.profile-popout-banner[style*="url("]:after{background:linear-gradient(180deg,transparent 48%,#0002)}
+.profile-banner-upload-preview{height:104px;margin:8px 0 10px;display:grid;place-items:center;overflow:hidden;border:1px solid var(--border,#ffffff20);border-radius:9px;background:linear-gradient(125deg,color-mix(in srgb,var(--accent) 18%,var(--panel)),color-mix(in srgb,#818cf8 20%,var(--panel)));background-size:cover;background-position:center;color:var(--muted);font-size:11px}
