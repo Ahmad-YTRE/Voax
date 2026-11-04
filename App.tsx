@@ -176,12 +176,16 @@ function isInboxMention(notification: AppNotification) {
 async function hydrateMentionTypes(rows: AppNotification[], userId: string): Promise<AppNotification[]> {
   const messageIds = [...new Set(rows.filter(row => row.type === "mention" && row.entity_id).map(row => row.entity_id!))];
   if (!messageIds.length) return rows;
-  const { data, error } = await supabase.from("message_mentions").select("message_id,mention_types").eq("recipient_id", userId).in("message_id", messageIds);
-  if (error) {
-    console.warn("Mention types unavailable", error.message);
-    return rows;
+  const byMessage = new Map<string, string[]>();
+  for (let index = 0; index < messageIds.length; index += 100) {
+    const batch = messageIds.slice(index, index + 100);
+    const { data, error } = await supabase.from("message_mentions").select("message_id,mention_types").eq("recipient_id", userId).in("message_id", batch);
+    if (error) {
+      console.warn("Mention types unavailable", error.message);
+      return rows;
+    }
+    for (const row of data || []) byMessage.set(row.message_id, row.mention_types || []);
   }
-  const byMessage = new Map<string, string[]>((data || []).map(row => [row.message_id, row.mention_types || []] as [string, string[]]));
   return rows.map(row => row.type === "mention" && row.entity_id ? { ...row, mentionTypes: byMessage.get(row.entity_id) || [] } : row);
 }
 
