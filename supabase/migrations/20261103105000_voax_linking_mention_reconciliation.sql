@@ -50,8 +50,8 @@ begin
     and mention_types @> array['user']::text[];
 
   for v_target in
-    select distinct mentioned_user_id
-    from unnest(coalesce(p_mention_user_ids, '{}'::uuid[])) as mentioned_user_id
+    select distinct recipients.mentioned_user_id
+    from unnest(coalesce(p_mention_user_ids, '{}'::uuid[])) as recipients(mentioned_user_id)
   loop
     if exists (
       select 1 from public.server_members sm
