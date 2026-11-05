@@ -105,4 +105,4 @@ Made for friends, teams, and communities. **Chat. Chill. Have Fun.**
 
 ## Voax Linking worker
 
-The Discord Gateway worker for two-way channel linking, synchronized member welcomes, and welcome-sticker replies lives in [`LinkingBot/`](./LinkingBot/README.md). It runs as an always-on Node.js service and must be configured with `DISCORD_BOT_TOKEN`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`. Enable the Discord Server Members Intent and grant the bot the required permissions in each linked channel. See the worker README for setup details.
+The unified Discord Gateway worker for two-way channel synchronization, member welcomes, and welcome-sticker replies lives in [`BotLinking/`](./BotLinking/README.md). It runs as an always-on Node.js service and must be configured with `DISCORD_BOT_TOKEN`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`. Enable the Discord Server Members Intent and grant the bot the required permissions in each linked channel. See the worker README for setup details.
