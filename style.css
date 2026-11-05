@@ -5237,3 +5237,19 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   background: #e8eef5;
   color: #172033;
 }
+
+
+/* Synchronized Discord/Voax member welcome cards */
+.welcome-event-card{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:620px;margin:12px 0 4px;padding:13px 14px;border:1px solid var(--border-color,rgba(255,255,255,.12));border-radius:12px;background:var(--panel-bg,rgba(255,255,255,.035))}
+.welcome-event-copy{display:flex;flex-direction:column;gap:5px;min-width:0}
+.welcome-event-copy strong{font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.welcome-event-origin{width:max-content;padding:3px 7px;border-radius:5px;font-size:9px;font-weight:800;letter-spacing:.07em;background:rgba(88,101,242,.13);color:#8b9cff}
+.welcome-event-origin.voax{background:rgba(16,185,129,.12);color:#34d399}
+.welcome-sticker-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex-shrink:0;padding:9px 12px;border:1px solid rgba(88,101,242,.35);border-radius:8px;background:rgba(88,101,242,.14);color:var(--text-primary,#e5e7eb);font:inherit;font-size:12px;font-weight:650;cursor:pointer;transition:background .15s,border-color .15s}
+.welcome-sticker-button:hover:not(:disabled){background:rgba(88,101,242,.24);border-color:rgba(88,101,242,.55)}
+.welcome-sticker-button:disabled{opacity:.55;cursor:wait}
+.welcome-sticker-unavailable{color:var(--muted,#9ca3af);font-size:11px}
+:root[data-theme="light"] .welcome-event-card{background:#fff;border-color:#dce2eb;box-shadow:0 2px 8px rgba(20,32,52,.05)}
+:root[data-theme="light"] .welcome-event-copy strong{color:#1f2937}
+:root[data-theme="light"] .welcome-sticker-button{color:#3443a6;background:#eef0ff;border-color:#d8dcff}
+@media(max-width:560px){.welcome-event-card{align-items:stretch;flex-direction:column}.welcome-sticker-button{width:100%}}
