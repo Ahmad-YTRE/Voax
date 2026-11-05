@@ -48,6 +48,6 @@ Each channel link stores two independent sticker choices:
 - A Discord sticker ID, selected from a sticker available to the Discord bot in that guild.
 - A publicly reachable HTTPS image/GIF URL for the corresponding Voax sticker.
 
-The welcome button is enabled only when both are configured. A click on either platform creates one idempotent action, then the worker posts the configured Discord sticker as a reply and mirrors the sticker reply into Voax. The join origin is retained as Discord or Voax.
+The Voax-side welcome button is enabled when both are configured. If the linked Discord channel is also the server's system welcome channel, the worker reuses Discord's native join message and captures the sticker reply created by Discord's built-in welcome button. Otherwise it posts its own Discord welcome card and button. A click on Voax or either Discord button is synchronized as one idempotent reply. The join origin is retained as Discord or Voax.
 
 The worker processes the durable `discord_welcome_events` and `discord_welcome_actions` queues. Failed work is retried with backoff; exhausted jobs remain visible as dead-letter rows for diagnosis.
