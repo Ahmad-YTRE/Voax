@@ -98,19 +98,22 @@ export default async function handler(req:any,res:any){
    if(!serverId||!linkId||!(await canManage(String(serverId),user.id)))return reply(res,403,{error:"Manage Integrations permission is required."});
    const discordStickerId=String(req.body?.discordWelcomeStickerId||"").trim();
    const voaxStickerUrl=String(req.body?.voaxWelcomeStickerUrl||"").trim();
-   const template=String(req.body?.welcomeMessageTemplate||"Welcome {user} to {server}!").trim();
+   const discordTemplate=String(req.body?.discordWelcomeMessageTemplate||req.body?.welcomeMessageTemplate||"Welcome {user} to {server}!").trim();
+   const voaxTemplate=String(req.body?.voaxWelcomeMessageTemplate||req.body?.welcomeMessageTemplate||"Welcome {user} to {server}!").trim();
    if(discordStickerId&&!/^\\d{17,20}$/.test(discordStickerId))return reply(res,400,{error:"Enter a valid Discord sticker ID."});
    if(voaxStickerUrl){
     try{const parsed=new URL(voaxStickerUrl);if(parsed.protocol!=="https:"||parsed.username||parsed.password)throw new Error();}
     catch{return reply(res,400,{error:"The Voax sticker must be a valid public HTTPS image or GIF URL."});}
    }
-   if(template.length<1||template.length>500)return reply(res,400,{error:"Welcome message templates must be 1–500 characters."});
+   if(discordTemplate.length<1||discordTemplate.length>500||voaxTemplate.length<1||voaxTemplate.length>500)return reply(res,400,{error:"Each welcome message template must be 1–500 characters."});
    const {data,error}=await admin.from("discord_channel_links").update({
     welcome_discord_enabled:Boolean(req.body?.welcomeDiscordEnabled),
     welcome_voax_enabled:Boolean(req.body?.welcomeVoaxEnabled),
     discord_welcome_sticker_id:discordStickerId||null,
     voax_welcome_sticker_url:voaxStickerUrl||null,
-    welcome_message_template:template
+    welcome_message_template:discordTemplate,
+    discord_welcome_message_template:discordTemplate,
+    voax_welcome_message_template:voaxTemplate
    }).eq("id",linkId).eq("voax_server_id",serverId).select("id").maybeSingle();
    if(error)throw error;if(!data)return reply(res,404,{error:"Channel link not found."});
    return reply(res,200,{ok:true});
