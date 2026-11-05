@@ -34,7 +34,7 @@ function WelcomeSettings({link,serverId,canManage}:{link:Link;serverId:string;ca
   <strong>Join welcome synchronization</strong>
   <label className="voax-linking-checkbox"><input type="checkbox" checked={discordEnabled} onChange={e=>setDiscordEnabled(e.target.checked)}/><span>Welcome when someone joins Discord</span></label>
   <label className="voax-linking-checkbox"><input type="checkbox" checked={voaxEnabled} onChange={e=>setVoaxEnabled(e.target.checked)}/><span>Welcome when someone joins Voax</span></label>
-  <label>Discord welcome sticker ID<input value={discordSticker} onChange={e=>setDiscordSticker(e.target.value)} placeholder="Discord sticker ID"/></label>
+  <label>Discord welcome sticker ID<input value={discordSticker} onChange={e=>setDiscordSticker(e.target.value)} placeholder="Discord sticker ID"/><small>Enable Developer Mode in Discord, then use Copy Sticker ID.</small></label>
   <label>Voax welcome sticker image URL<input type="url" value={voaxSticker} onChange={e=>setVoaxSticker(e.target.value)} placeholder="https://…/welcome-sticker.gif"/></label>
   <label>Discord welcome message<input value={discordTemplate} onChange={e=>setDiscordTemplate(e.target.value)} maxLength={500} placeholder="Welcome {user} to {server}!"/></label>
   <label>Voax welcome message<input value={voaxTemplate} onChange={e=>setVoaxTemplate(e.target.value)} maxLength={500} placeholder="Welcome {user} to {server}!"/></label>
