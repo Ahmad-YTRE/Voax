@@ -1110,7 +1110,9 @@ function App({ session }: { session: Session }) {
     void loadCachedProfiles([activePerson.id]).then(profiles => {
       if (cancelled || !profiles[0]) return;
       const profile = profiles[0];
-      setPeople(old => old.map(person => person.id === activePerson.id ? { ...person, name: profile.username || person.name, status: (profile.status || person.status || (person.online ? "Online" : "Offline")) as PresenceStatus, online: (profile.status || person.status || (person.online ? "Online" : "Offline")) !== "Offline", avatarUrl: profile.avatar_url || person.avatarUrl || null, bannerUrl: profile.banner_url || person.bannerUrl || null, bio: profile.bio || "" } : person));
+      // Profile hydration must never determine live presence. Online/offline
+      // is owned exclusively by the Supabase Presence channel above.
+      setPeople(old => old.map(person => person.id === activePerson.id ? { ...person, name: profile.username || person.name, avatarUrl: profile.avatar_url || person.avatarUrl || null, bannerUrl: profile.banner_url || person.bannerUrl || null, bio: profile.bio || "" } : person));
     }).catch(() => undefined);
     return () => { cancelled = true; };
   }, [view, activePerson?.id]);
