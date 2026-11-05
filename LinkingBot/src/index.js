@@ -399,7 +399,7 @@ async function recordNativeWelcomeStickerReply(message) {
     const { error: insertError } = await supabase.from("discord_welcome_actions").upsert({
       welcome_event_id: event.id,
       source_platform: "discord",
-      idempotency_key: `discord-native:${event.id}:${message.id}`,
+      idempotency_key: `discord:${event.id}:${message.author.id}`,
       actor_external_user_id: message.author.id,
       actor_name: message.member?.displayName || message.author.globalName || message.author.username,
       sticker_id: sticker.id,
