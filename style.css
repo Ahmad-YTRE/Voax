@@ -5220,3 +5220,20 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 :root[data-theme="light"] .discussion-post-skeleton { background:#fff;border-color:#d8e1eb; }
 :root[data-theme="light"] .ticket-panel-skeleton { background:linear-gradient(145deg,#fff,#f7f9fc 70%);border-color:#d8e1eb; }
 @media(prefers-reduced-motion:reduce) { :root[data-theme="light"] .skeleton-bar{background:#e6edf4} }
+
+
+/* Message hover action toolbar must use light surfaces in light theme. */
+:root[data-theme="light"] .message-actions {
+  background: #ffffff;
+  border-color: #d8e1eb;
+  box-shadow: 0 5px 18px rgba(23, 32, 51, .14);
+}
+:root[data-theme="light"] .message-actions button {
+  color: #526174;
+}
+:root[data-theme="light"] .message-actions button:hover,
+:root[data-theme="light"] .message-actions .message-reaction-trigger:hover,
+:root[data-theme="light"] .message-actions .message-reaction-trigger[aria-expanded="true"] {
+  background: #e8eef5;
+  color: #172033;
+}
