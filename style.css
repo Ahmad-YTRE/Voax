@@ -5046,3 +5046,130 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 :root[data-theme="light"] .app-confirm-dialog p {
   color: var(--muted);
 }
+
+
+/* Light-theme coverage for secondary controls and panels. */
+:root[data-theme="light"] .member-panel,
+:root[data-theme="light"] .member-sidebar,
+:root[data-theme="light"] .member-panel-head,
+:root[data-theme="light"] .user-status-menu,
+:root[data-theme="light"] .server-discovery-settings,
+:root[data-theme="light"] .server-discovery-fields,
+:root[data-theme="light"] .role-member-list,
+:root[data-theme="light"] .role-member-row,
+:root[data-theme="light"] .pending-attachment {
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--line);
+}
+:root[data-theme="light"] .member-panel-head strong,
+:root[data-theme="light"] .member-entry-action,
+:root[data-theme="light"] .message-actions button,
+:root[data-theme="light"] .reaction-chip,
+:root[data-theme="light"] .reply-context strong,
+:root[data-theme="light"] .replying-banner strong,
+:root[data-theme="light"] .user-status-option,
+:root[data-theme="light"] .role-member-info strong,
+:root[data-theme="light"] .server-icon-preview,
+:root[data-theme="light"] .server-icon-upload-control input,
+:root[data-theme="light"] .profile-mutual-row strong,
+:root[data-theme="light"] .discord-server-nav-server {
+  color: var(--text);
+}
+:root[data-theme="light"] .member-panel-head span,
+:root[data-theme="light"] .member-group-label,
+:root[data-theme="light"] .member-panel-note,
+:root[data-theme="light"] .reaction-chip span,
+:root[data-theme="light"] .reply-context p,
+:root[data-theme="light"] .replying-banner small,
+:root[data-theme="light"] .user-status-menu-title,
+:root[data-theme="light"] .role-member-info small,
+:root[data-theme="light"] .server-icon-upload-control small,
+:root[data-theme="light"] .profile-popout-handle span,
+:root[data-theme="light"] .profile-mutual-row small,
+:root[data-theme="light"] .discord-settings-nav-title {
+  color: var(--muted);
+}
+:root[data-theme="light"] .member-entry-action:hover,
+:root[data-theme="light"] .message-actions button:hover,
+:root[data-theme="light"] .user-account-top .user-settings:hover,
+:root[data-theme="light"] .user-voice-controls .voice-toggle[aria-pressed="true"]:hover,
+:root[data-theme="light"] .context-menu > button:hover,
+:root[data-theme="light"] .context-menu > button.danger:hover {
+  color: var(--text);
+  background: var(--card);
+}
+:root[data-theme="light"] .reaction-chip,
+:root[data-theme="light"] .server-icon-preview,
+:root[data-theme="light"] .server-icon-upload-control,
+:root[data-theme="light"] .pending-attachment,
+:root[data-theme="light"] .role-member-row,
+:root[data-theme="light"] .role-member-list {
+  border-color: var(--line);
+}
+:root[data-theme="light"] .reply-context,
+:root[data-theme="light"] .replying-banner,
+:root[data-theme="light"] .user-status-option:hover,
+:root[data-theme="light"] .server-icon-upload-control,
+:root[data-theme="light"] .server-banner-upload-row > span,
+:root[data-theme="light"] .role-member-row:hover {
+  background: var(--card);
+  color: var(--text);
+}
+:root[data-theme="light"] .user-account-top .user-settings,
+:root[data-theme="light"] .user-voice-controls .voice-toggle[aria-pressed="true"] {
+  color: var(--muted);
+}
+:root[data-theme="light"] .user-voice-controls .voice-toggle[aria-pressed="false"] {
+  color: #c2414b;
+}
+:root[data-theme="light"] .server-discovery-settings form > label,
+:root[data-theme="light"] .server-discovery-fields label,
+:root[data-theme="light"] .discord-settings-content form > label:not(.btn) {
+  color: var(--text);
+}
+:root[data-theme="light"] .discord-settings-content input[type="file"],
+:root[data-theme="light"] .discord-settings-content input[type="file"]::file-selector-button {
+  background: var(--card);
+  color: var(--text);
+  border-color: var(--line);
+}
+:root[data-theme="light"] .discord-settings-content input[type="file"]::file-selector-button:hover {
+  background: #dfe8f1;
+}
+:root[data-theme="light"] .invite-preview-icon,
+:root[data-theme="light"] .invite-preview-copy .invite-preview-eyebrow {
+  color: #5146a5;
+}
+:root[data-theme="light"] .profile-mutual-row > img,
+:root[data-theme="light"] .profile-mutual-row > span {
+  color: var(--text);
+  background-color: var(--card);
+}
+:root[data-theme="light"] .dm-home-friends-link.active {
+  background: var(--card);
+  color: var(--text);
+}
+:root[data-theme="light"] .channels-container > .nav-list:empty::after,
+:root[data-theme="light"] .message-avatar-spacer time,
+:root[data-theme="light"] .message-send-status {
+  color: var(--muted);
+}
+:root[data-theme="light"] .message-row-sending .message-body > p,
+:root[data-theme="light"] .message-row-sending .message-content {
+  color: #526174;
+}
+:root[data-theme="light"] .message-send-failed,
+:root[data-theme="light"] .message-send-failed button,
+:root[data-theme="light"] .message-row-send-failed .message-body > p,
+:root[data-theme="light"] .message-row-send-failed .message-content {
+  color: #c2414b;
+}
+:root[data-theme="light"] .staff-rail-button {
+  color: #526174;
+  background: #ffffff;
+}
+:root[data-theme="light"] .staff-rail-button:hover {
+  color: #166b54;
+  background: #e5f5ef;
+}
