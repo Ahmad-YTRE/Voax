@@ -2592,7 +2592,6 @@ function App({ session }: { session: Session }) {
             return <button className={"member-entry" + (person.online ? "" : " offline")} key={person.id} onClick={() => isSelf ? openProfile({ ...person }) : openProfile(person)} onContextMenu={e => !isSelf && showContextMenu(e, {kind:"person",person})} title={isSelf ? "Your profile" : `View ${person.name} profile`}>
               <span className={`avatar member-avatar ${person.color || "blue"}`}>{person.avatarUrl ? <img src={person.avatarUrl} alt="" /> : initials(person.name)}<i className={presenceIndicatorClass(person.status || (person.online ? "Online" : "Offline"))} title={person.status || (person.online ? "Online" : "Offline")} aria-label={person.status || (person.online ? "Online" : "Offline")} /></span>
               <span className="member-entry-copy"><strong style={primaryRole ? {color:primaryRole.color} : undefined}>{person.name}{isSelf ? " (you)" : ""}</strong><small>{memberStatus}</small></span>
-              {!isSelf && <span className="member-entry-action"><span role="button" tabIndex={0} aria-label={`Message ${person.name}`} title={`Message ${person.name}`} onClick={e=>{e.stopPropagation();void openDM(person);}} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();e.stopPropagation();void openDM(person);}}}><Icon name="message" size={15}/></span></span>}
             </button>;
           })}</div>
         </section>);
