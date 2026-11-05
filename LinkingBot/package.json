@@ -1,0 +1,15 @@
+{
+  "name": "voax-linking-bot",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.81.1",
+    "discord.js": "14.19.3"
+  }
+}
