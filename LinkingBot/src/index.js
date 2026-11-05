@@ -19,7 +19,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
   auth: { persistSession: false, autoRefreshToken: false },
 });
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages],
 });
 const pollInterval = Math.max(750, Number(process.env.POLL_INTERVAL_MS || 1500));
 let queueBusy = false;
@@ -213,9 +213,9 @@ async function createVoaxStickerReply(action, event, context) {
     attachments: [{
       path: `welcome-sticker:${action.id}`,
       name: "Welcome sticker",
-      mimeType: "image/webp",
+      mimeType: /\\.gif(?:[?#]|$)/i.test(action.sticker_url || context.link.voax_welcome_sticker_url || "") ? "image/gif" : "image/png",
       size: 0,
-      url: context.link.voax_welcome_sticker_url,
+      url: action.sticker_url || context.link.voax_welcome_sticker_url,
     }],
     bridge_source: action.source_platform,
     bridge_external_id: externalId,
