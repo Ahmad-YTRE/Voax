@@ -441,7 +441,7 @@ async function handleWelcomeButton(interaction) {
 }
 
 client.on(Events.MessageCreate, message => {
-  if (message.type === MessageType.GuildMemberJoin) {
+  if (message.type === MessageType.UserJoin) {
     void recordDiscordSystemWelcome(message).catch(error => logError("Discord system welcome", error));
     return;
   }
