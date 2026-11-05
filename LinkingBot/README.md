@@ -39,7 +39,7 @@ Grant the bot only the permissions it needs in the channel being linked:
 - Embed Links
 - Use External Stickers (when using Discord stickers)
 
-Enable **Server Members Intent** under the Discord application's Bot settings. The bot does not need Message Content Intent for join events or its own welcome-sticker buttons.
+Enable **Server Members Intent** under the Discord application's Bot settings. The worker also subscribes to the standard Guild Messages intent so it can detect Discord's native join system messages and the sticker replies created by Discord's built-in welcome button. It does not need Message Content Intent.
 
 ## Welcome stickers
 
