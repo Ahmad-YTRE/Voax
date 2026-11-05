@@ -4820,7 +4820,7 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .settings-avatar-edit>.avatar{width:100%;height:100%;border-radius:inherit}
 .settings-avatar-edit>i,.settings-banner-edit>i,.settings-server-icon-edit>i{position:absolute;inset:0;display:grid;place-items:center;background:#05080dcc;color:white;opacity:0;transition:opacity .16s;pointer-events:none}
 .settings-avatar-edit:hover>i,.settings-banner-edit:hover>i,.settings-server-icon-edit:hover>i{opacity:1}
-.settings-avatar-edit input,.settings-banner-edit input,.settings-server-icon-edit input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.settings-avatar-edit input,.settings-banner-edit input,.settings-server-icon-edit input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;pointer-events:auto;cursor:pointer;z-index:3}
 .settings-banner-edit{min-height:100px;width:100%;border:1px solid var(--line);border-radius:10px;background-color:var(--card);background-size:cover;background-position:center;color:var(--muted)}
 .settings-server-icon-edit{width:88px;height:88px;border-radius:18px}
 .settings-server-icon-edit img{width:100%;height:100%;object-fit:cover}
