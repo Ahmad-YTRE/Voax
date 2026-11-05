@@ -5253,3 +5253,5 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 :root[data-theme="light"] .welcome-event-copy strong{color:#1f2937}
 :root[data-theme="light"] .welcome-sticker-button{color:#3443a6;background:#eef0ff;border-color:#d8dcff}
 @media(max-width:560px){.welcome-event-card{align-items:stretch;flex-direction:column}.welcome-sticker-button{width:100%}}
+
+.welcome-event-avatar{width:28px;height:28px;flex:0 0 28px;object-fit:cover;border-radius:50%;margin-bottom:2px}
