@@ -860,6 +860,21 @@ function App({ session }: { session: Session }) {
   const [serverDropdownOpen, setServerDropdownOpen] = useState(false);
   const [modalInput, setModalInput] = useState("");
   const [toast, setToast] = useState("");
+  const [appConfirm, setAppConfirm] = useState<{title:string;message:string;confirmLabel:string;cancelLabel:string;danger:boolean}|null>(null);
+  const appConfirmResolver = useRef<((confirmed:boolean)=>void)|null>(null);
+  function askConfirm(options:{title:string;message:string;confirmLabel?:string;cancelLabel?:string;danger?:boolean}):Promise<boolean>{
+    if(appConfirmResolver.current){appConfirmResolver.current(false);appConfirmResolver.current=null;}
+    return new Promise(resolve=>{
+      appConfirmResolver.current=resolve;
+      setAppConfirm({title:options.title,message:options.message,confirmLabel:options.confirmLabel||"Confirm",cancelLabel:options.cancelLabel||"Cancel",danger:options.danger!==false});
+    });
+  }
+  function closeAppConfirm(confirmed:boolean){
+    const resolve=appConfirmResolver.current;
+    appConfirmResolver.current=null;
+    setAppConfirm(null);
+    resolve?.(confirmed);
+  }
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [staffRole, setStaffRole] = useState<"owner" | "admin" | "moderator" | null>(null);
   const [blockedUserIds, setBlockedUserIds] = useState<Set<string>>(new Set());
@@ -1551,7 +1566,7 @@ function App({ session }: { session: Session }) {
     if(!currentServer||!canKickMembers||userId===currentServer.createdBy||userId===session.user.id)return;
     if(!canManageMemberHierarchy(userId)){notify("You can only remove members whose highest role is below yours.");return;}
     const person=people.find(item=>item.id===userId);
-    if(!window.confirm("Remove "+(person?.name||"this member")+" from "+currentServer.name+"?"))return;
+    if(!(await askConfirm({title:"Remove member?",message:"Remove "+(person?.name||"this member")+" from "+currentServer.name+"?",confirmLabel:"Remove"})))return;
     const {error}=await supabase.from("server_members").delete().eq("server_id",currentServer.id).eq("user_id",userId);
     if(error){notify("Couldn't remove member: "+error.message);return;}
     setServerMembersByServer(old=>({...old,[currentServer.id]:(old[currentServer.id]||[]).filter(id=>id!==userId)}));
@@ -1662,7 +1677,7 @@ function App({ session }: { session: Session }) {
     if(!currentServer||!canManageRoles)return;
     const role=customServerRoles.find(item=>item.id===roleId);
     if(!role||!canManageCustomRole(roleId)){notify("You can only delete roles below your highest role.");return;}
-    if(!window.confirm("Delete the "+role.name+" role and remove it from members?"))return;
+    if(!(await askConfirm({title:"Delete role?",message:"Delete the "+role.name+" role and remove it from members?",confirmLabel:"Delete"})))return;
     const {error}=await supabase.from("server_roles").delete().eq("id",roleId).eq("server_id",currentServer.id);
     if(error){notify("Couldn't delete role: "+error.message);return;}
     setCustomServerRoles(old=>old.filter(item=>item.id!==roleId));
@@ -1792,7 +1807,7 @@ function App({ session }: { session: Session }) {
   }
   async function respondToFriendRequest(request:FriendRequest,accept:boolean){const {error}=await supabase.from("friendships").update({status:accept?"accepted":"rejected"}).eq("id",request.id).eq("addressee_id",session.user.id).eq("status","pending");if(error){notify("Unable to update friend request: "+error.message);return;}notify(accept?"Friend request accepted.":"Friend request declined.");await loadWorkspace();}
   async function cancelOutgoingFriendRequest(request:FriendRequest){const {error}=await supabase.from("friendships").update({status:"rejected",updated_at:new Date().toISOString()}).eq("id",request.id).eq("requester_id",session.user.id).eq("status","pending");if(error){notify("Unable to cancel friend request: "+error.message);return;}notify("Friend request to "+request.name+" cancelled.");await loadWorkspace();}
-  async function removeFriend(person:Person){if(person.id===session.user.id||!person.isFriend)return;if(!window.confirm("Remove "+person.name+" from your friends?"))return;const pairFilter="and(requester_id.eq."+session.user.id+",addressee_id.eq."+person.id+"),and(requester_id.eq."+person.id+",addressee_id.eq."+session.user.id+")";const {data,error}=await supabase.from("friendships").delete().eq("status","accepted").or(pairFilter).select("id").maybeSingle();if(error){notify("Unable to remove friend: "+error.message);return;}if(!data){notify("Friendship was not found. Refresh and try again.");return;}setSelectedProfile(current=>current?.id===person.id?null:current);notify(person.name+" was removed from your friends.");await loadWorkspace();}
+  async function removeFriend(person:Person){if(person.id===session.user.id||!person.isFriend)return;if(!(await askConfirm({title:"Remove friend?",message:"Remove "+person.name+" from your friends?",confirmLabel:"Remove"})))return;const pairFilter="and(requester_id.eq."+session.user.id+",addressee_id.eq."+person.id+"),and(requester_id.eq."+person.id+",addressee_id.eq."+session.user.id+")";const {data,error}=await supabase.from("friendships").delete().eq("status","accepted").or(pairFilter).select("id").maybeSingle();if(error){notify("Unable to remove friend: "+error.message);return;}if(!data){notify("Friendship was not found. Refresh and try again.");return;}setSelectedProfile(current=>current?.id===person.id?null:current);notify(person.name+" was removed from your friends.");await loadWorkspace();}
   async function toggleNotificationBlock(person:Person){
     if(person.id===session.user.id)return;
     const isBlocked=blockedNotificationActors.includes(person.id);
@@ -1825,7 +1840,7 @@ function App({ session }: { session: Session }) {
   async function saveEditMessage(e:FormEvent){e.preventDefault();if(!editingMessageId)return;const body=censorProfanity(draft.trim());if(!body){notify("Message cannot be empty.");return;}const messageId=editingMessageId;const {data,error}=await supabase.from("messages").update({body,edited_at:new Date().toISOString()}).eq("id",messageId).eq("author_id",session.user.id).select("id,body,edited_at").maybeSingle();if(error){notify("Couldn't edit your message: "+error.message);return;}if(!data){notify("This message could not be edited. Refresh and try again.");return;}setMessages(old=>Object.fromEntries(Object.entries(old).map(([key,list])=>[key,list.map(message=>message.id===messageId?{...message,text:data.body,editedAt:data.edited_at}:message)])));void messageEventsChannelRef.current?.send({type:"broadcast",event:"message-updated",payload:{id:data.id,body:data.body,editedAt:data.edited_at}});setEditingMessageId(null);setDraft("");notify("Message edited.");}
   async function deleteMessage(message:Message){
     if(!message.own&&!canManageMessages){notify("You don't have permission to delete this message.");return;}
-    if(!window.confirm("Delete this message? This action cannot be undone."))return;
+    if(!(await askConfirm({title:"Delete message?",message:"This action cannot be undone.",confirmLabel:"Delete"})))return;
     let deletion=supabase.from("messages").delete().eq("id",message.id);
     if(message.own)deletion=deletion.eq("author_id",session.user.id);
     const {data,error}=await deletion.select("id,attachments").maybeSingle();
@@ -2027,7 +2042,7 @@ function App({ session }: { session: Session }) {
       let payload=result.data as any;
       if(payload?.confirmation_required){
         const count=Number(payload.target_count)||0;
-        if(!window.confirm("This ping will notify "+count+" unique members. Send it anyway?")){
+        if(!(await askConfirm({title:"Send notification ping?",message:"This ping will notify "+count+" unique members. Send it anyway?",confirmLabel:"Send anyway",danger:false}))){
           setMessages(old=>Object.fromEntries(Object.entries(old).map(([key,list])=>[key,list.filter(item=>item.id!==tempId)])));
           return;
         }
@@ -2640,6 +2655,7 @@ function App({ session }: { session: Session }) {
       <button type="button" className={sidebarOpen ? "active" : ""} aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(value => !value)}><Icon name="menu" size={19}/><span>Servers</span></button>
       <button type="button" className={view === "explore" ? "active" : ""} aria-current={view === "explore" ? "page" : undefined} onClick={() => { void navigateExplore("/explore"); setSidebarOpen(false); }}><Icon name="explore" size={19}/><span>Explore</span></button>
     </nav>
+    {appConfirm&&<div className="app-confirm-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)closeAppConfirm(false);}}><section className="app-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="app-confirm-title" aria-describedby="app-confirm-message"><div className={"app-confirm-icon"+(appConfirm.danger?" danger":"")}><Icon name={appConfirm.danger?"alert-triangle":"bell"} size={21}/></div><h2 id="app-confirm-title">{appConfirm.title}</h2><p id="app-confirm-message">{appConfirm.message}</p><div className="app-confirm-actions"><button type="button" className="app-confirm-cancel" onClick={()=>closeAppConfirm(false)}>{appConfirm.cancelLabel}</button><button type="button" className={"app-confirm-submit"+(appConfirm.danger?" danger":"")} onClick={()=>closeAppConfirm(true)}>{appConfirm.confirmLabel}</button></div></section></div>}
     {toast && <div className="toast" role="status">{toast}</div>}
   </div>;
 }
