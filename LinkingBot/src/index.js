@@ -6,6 +6,7 @@ import {
   EmbedBuilder,
   Events,
   GatewayIntentBits,
+  MessageType,
 } from "discord.js";
 import { createClient } from "@supabase/supabase-js";
 
@@ -232,16 +233,16 @@ async function processWelcomeAction(action) {
     throw new Error("The welcome message is not ready for sticker replies.");
   }
   const context = await getLinkContext(event.channel_link_id);
-  if (!context.link.discord_welcome_sticker_id || !context.link.voax_welcome_sticker_url) {
-    throw new Error("Both platform welcome stickers must be configured.");
-  }
-
+  const stickerId = action.sticker_id || context.link.discord_welcome_sticker_id;
+  const stickerUrl = action.sticker_url || context.link.voax_welcome_sticker_url;
+  if (!stickerUrl) throw new Error("No accessible sticker image is available for the Voax reply.");
   let discordReplyMessageId = action.discord_reply_message_id;
   if (!discordReplyMessageId) {
+    if (!stickerId) throw new Error("A Discord welcome sticker has not been configured.");
     const channel = await getDiscordTextChannel(context.link.discord_channel_id);
     const welcomeMessage = await channel.messages.fetch(event.discord_message_id);
     const reply = await welcomeMessage.reply({
-      stickers: [context.link.discord_welcome_sticker_id],
+      stickers: [stickerId],
       allowedMentions: { parse: [] },
     });
     discordReplyMessageId = reply.id;
@@ -311,18 +312,104 @@ async function recordDiscordJoin(member) {
     .eq("integration.status", "connected");
   if (error) throw error;
   for (const link of links || []) {
-    const idempotencyKey = `discord_join:${link.id}:${member.id}:${member.joinedTimestamp || "unknown"}`;
-    const { error: insertError } = await supabase.from("discord_welcome_events").upsert({
-      channel_link_id: link.id,
-      source_platform: "discord",
-      idempotency_key: idempotencyKey,
+    const now = new Date();
+    const joinedAt = member.joinedAt?.toISOString() || now.toISOString();
+    const { data: existing, error: lookupError } = await supabase.from("discord_welcome_events")
+      .select("id").eq("channel_link_id", link.id).eq("source_platform", "discord")
+      .eq("external_member_id", member.id).in("status", ["pending", "processing"])
+      .gte("joined_at", new Date(now.getTime() - 60000).toISOString())
+      .lte("joined_at", new Date(now.getTime() + 60000).toISOString())
+      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (lookupError) throw lookupError;
+    const payload = {
+      channel_link_id: link.id, source_platform: "discord",
+      idempotency_key: `discord_join:${link.id}:${member.id}:${member.joinedTimestamp || "unknown"}`,
       external_member_id: member.id,
       member_name: member.user.globalName || member.user.username,
       member_avatar_url: member.user.displayAvatarURL({ size: 128 }),
       member_count: member.guild.memberCount,
-    }, { onConflict: "idempotency_key", ignoreDuplicates: true });
-    if (insertError) throw insertError;
+      joined_at: joinedAt,
+      available_at: new Date(Date.now() + 5000).toISOString(),
+    };
+    const write = existing
+      ? await supabase.from("discord_welcome_events").update(payload).eq("id", existing.id)
+      : await supabase.from("discord_welcome_events").upsert(payload, { onConflict: "idempotency_key", ignoreDuplicates: true });
+    if (write.error) throw write.error;
   }
+}
+
+async function recordDiscordSystemWelcome(message) {
+  const guild = message.guild;
+  const joinedUser = message.mentions.users.first();
+  if (!guild || !joinedUser || joinedUser.bot) return;
+  const { data: links, error } = await supabase
+    .from("discord_channel_links")
+    .select("id,integration:discord_integrations!inner(discord_guild_id,status)")
+    .eq("status", "active")
+    .eq("welcome_discord_enabled", true)
+    .eq("discord_channel_id", message.channelId)
+    .eq("integration.discord_guild_id", guild.id)
+    .eq("integration.status", "connected");
+  if (error) throw error;
+  for (const link of links || []) {
+    const windowStart = new Date(message.createdTimestamp - 60000).toISOString();
+    const windowEnd = new Date(message.createdTimestamp + 60000).toISOString();
+    const { data: existing, error: lookupError } = await supabase.from("discord_welcome_events")
+      .select("id").eq("channel_link_id", link.id).eq("source_platform", "discord")
+      .eq("external_member_id", joinedUser.id).in("status", ["pending", "processing"])
+      .gte("joined_at", windowStart).lte("joined_at", windowEnd)
+      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (lookupError) throw lookupError;
+    if (existing) {
+      const { error: updateError } = await supabase.from("discord_welcome_events")
+        .update({ discord_message_id: message.id, available_at: new Date().toISOString() })
+        .eq("id", existing.id);
+      if (updateError) throw updateError;
+    } else {
+      const { error: insertError } = await supabase.from("discord_welcome_events").upsert({
+        channel_link_id: link.id,
+        source_platform: "discord",
+        idempotency_key: `discord_system_join:${link.id}:${message.id}`,
+        external_member_id: joinedUser.id,
+        member_name: joinedUser.globalName || joinedUser.username,
+        member_avatar_url: joinedUser.displayAvatarURL({ size: 128 }),
+        member_count: guild.memberCount,
+        joined_at: new Date(message.createdTimestamp).toISOString(),
+        discord_message_id: message.id,
+      }, { onConflict: "idempotency_key", ignoreDuplicates: true });
+      if (insertError) throw insertError;
+    }
+  }
+}
+
+async function recordNativeWelcomeStickerReply(message) {
+  if (message.author.bot || !message.guildId || !message.reference?.messageId || !message.stickers?.size) return;
+  const { data: event, error } = await supabase.from("discord_welcome_events")
+    .select("id,status")
+    .eq("discord_message_id", message.reference.messageId)
+    .eq("status", "sent")
+    .maybeSingle();
+  if (error) throw error;
+  if (!event) return;
+  const sticker = message.stickers.first();
+  if (!sticker) return;
+  const { data: context, error: contextError } = await supabase
+    .from("discord_welcome_events").select("channel_link_id").eq("id", event.id).single();
+  if (contextError) throw contextError;
+  const linkContext = await getLinkContext(context.channel_link_id);
+  if (linkContext.integration.discord_guild_id !== message.guildId ||
+      linkContext.link.discord_channel_id !== message.channelId) return;
+  const { error: insertError } = await supabase.from("discord_welcome_actions").upsert({
+    welcome_event_id: event.id,
+    source_platform: "discord",
+    idempotency_key: `discord-native:${event.id}:${message.id}`,
+    actor_external_user_id: message.author.id,
+    actor_name: message.member?.displayName || message.author.globalName || message.author.username,
+    sticker_id: sticker.id,
+    sticker_url: sticker.url,
+    discord_reply_message_id: message.id,
+  }, { onConflict: "idempotency_key", ignoreDuplicates: true });
+  if (insertError) throw insertError;
 }
 
 async function handleWelcomeButton(interaction) {
@@ -354,6 +441,16 @@ async function handleWelcomeButton(interaction) {
   if (insertError) throw insertError;
   await interaction.reply({ content: "Your welcome sticker is on its way!", ephemeral: true });
 }
+
+client.on(Events.MessageCreate, message => {
+  if (message.type === MessageType.GuildMemberJoin) {
+    void recordDiscordSystemWelcome(message).catch(error => logError("Discord system welcome", error));
+    return;
+  }
+  if (message.stickers?.size) {
+    void recordNativeWelcomeStickerReply(message).catch(error => logError("native welcome sticker reply", error));
+  }
+});
 
 client.on(Events.GuildMemberAdd, member => {
   void recordDiscordJoin(member).catch(error => logError("Discord member join", error));
