@@ -4839,3 +4839,22 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .server-banner-upload-row.settings-banner-edit{display:flex;min-height:110px;padding:0;background-color:var(--card);background-size:cover}
 .server-banner-upload-row.settings-banner-edit img{width:100%;height:100%;min-height:110px;object-fit:cover}
 @media(max-width:620px){.settings-image-edit-grid{grid-template-columns:1fr}.image-crop-controls label{grid-template-columns:1fr;gap:5px}}
+
+
+/* Native Voax confirmation dialogs (instead of browser confirm prompts). */
+.app-confirm-backdrop{position:fixed;inset:0;z-index:12000;display:grid;place-items:center;padding:20px;background:rgba(3,8,15,.72);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);animation:app-confirm-fade-in .14s ease-out}
+.app-confirm-dialog{width:min(100%,420px);padding:25px;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);box-shadow:0 24px 80px rgba(0,0,0,.42);animation:app-confirm-pop-in .16s ease-out}
+.app-confirm-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent);margin-bottom:17px}
+.app-confirm-icon.danger{background:rgba(239,89,89,.12);color:#ff7777}
+.app-confirm-dialog h2{margin:0;color:var(--text);font-size:19px;font-weight:750;letter-spacing:-.025em}
+.app-confirm-dialog p{margin:9px 0 23px;color:var(--muted);font-size:14px;line-height:1.55;overflow-wrap:anywhere}
+.app-confirm-actions{display:flex;justify-content:flex-end;gap:9px}
+.app-confirm-actions button{min-height:39px;padding:0 16px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+.app-confirm-cancel{background:var(--card);color:var(--text)}
+.app-confirm-cancel:hover{background:var(--bg)}
+.app-confirm-submit{border-color:var(--accent);background:var(--accent);color:#071116}
+.app-confirm-submit.danger{border-color:#d94e55;background:#d94e55;color:#fff}
+.app-confirm-actions button:hover{transform:translateY(-1px)}
+@keyframes app-confirm-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes app-confirm-pop-in{from{opacity:0;transform:translateY(7px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.app-confirm-backdrop,.app-confirm-dialog{animation:none}.app-confirm-actions button{transition:none}}
