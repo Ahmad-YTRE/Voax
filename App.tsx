@@ -726,9 +726,9 @@ function ImageCropDialog({file,aspectRatio,title,onCancel,onApply}:{file:File;as
   useEffect(()=>{const url=URL.createObjectURL(file);setSource(url);return()=>URL.revokeObjectURL(url);},[file]);
   const apply=async()=>{
     const image=new Image();image.src=source;await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error("Could not read this image."));});
-    const baseScale=Math.max(1,aspectRatio/(image.width/image.height), (image.width/image.height)/aspectRatio);
-    const scale=baseScale*zoom;
-    const cropW=image.width/scale,cropH=image.height/scale;
+    const imageRatio=image.width/image.height;
+    const cropW=imageRatio>aspectRatio?image.height*aspectRatio/zoom:image.width/zoom;
+    const cropH=imageRatio>aspectRatio?image.height/zoom:image.width/aspectRatio/zoom;
     const sx=(image.width-cropW)*(position.x/100),sy=(image.height-cropH)*(position.y/100);
     const outW=aspectRatio>=1?1200:800,outH=Math.round(outW/aspectRatio);
     const canvas=document.createElement("canvas");canvas.width=outW;canvas.height=outH;
