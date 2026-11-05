@@ -1,6 +1,6 @@
 # Voax Linking Bot (BotLinking)
 
-**BotLinking is the one and only bot runtime folder.** It contains the complete Voax Linking Gateway worker and the CommonJS entry point required by bot-hosting.net. This is the single runtime for two-way message synchronization, member-join welcome events, welcome cards, and welcome sticker actions. The website/API and this persistent bot process deploy independently.
+**BotLinking is the one and only bot runtime folder.** It contains the complete Voax Linking Gateway worker and the Node.js entry point required by bot-hosting.net. This is the single runtime for two-way message synchronization, member-join welcome events, welcome cards, and welcome sticker actions. The website/API and this persistent bot process deploy independently.
 
 ## bot-hosting.net setup
 
@@ -12,7 +12,7 @@
 6. Enable **Message Content Intent** in the Discord Developer Portal.
 7. Start exactly one worker instance initially.
 
-The root `index.js` is a small CommonJS launcher for hosting panels. It starts the shared TypeScript runtime in `src/`; there is no second, separately maintained JavaScript bot implementation.
+The root `index.js` is a small Node.js ES-module launcher for hosting panels. It starts the shared TypeScript runtime in `src/`; there is no second, separately maintained JavaScript bot implementation.
 
 ## Required environment variables
 
@@ -35,7 +35,7 @@ Use `.env.example` as a reference for local development. Never upload a real `.e
 
 Enable **Message Content Intent**. The unified bot uses Guilds, Guild Members, Guild Messages, and Message Content gateway intents. Enable Server Members Intent and Message Content Intent in the Discord Developer Portal.
 
-The install link requests no guild-wide permissions. Grant the bot these permissions only in channels that should be linked: View Channel, Send Messages, Read Message History, Embed Links, Attach Files, and Manage Webhooks. For strict isolation, deny the bot role View Channel in unlinked channels where `@everyone` otherwise grants visibility. Voax never changes Discord channel permissions automatically.
+The install link requests no guild-wide permissions. Grant the bot these permissions only in channels that should be linked: View Channel, Send Messages, Read Message History, Embed Links, Attach Files, Manage Webhooks, and Use External Stickers when using Discord welcome stickers. For strict isolation, deny the bot role View Channel in unlinked channels where `@everyone` otherwise grants visibility. Voax never changes Discord channel permissions automatically.
 
 ## Development and checks
 
