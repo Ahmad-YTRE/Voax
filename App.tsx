@@ -1028,7 +1028,7 @@ function App({ session }: { session: Session }) {
   const canGrantRolePermission = (permission: keyof ServerRole["permissions"]) => currentServer?.role === "owner"
     || (permission !== "manage_roles" && permission !== "manage_server" && Boolean(myCustomPermissions[permission]));
   const orderedServerCategories = channelCategories.filter(item=>item.serverId===activeServer&&item.id&&item.name!=="Text Channels").sort((a,b)=>(a.position??0)-(b.position??0)||a.name.localeCompare(b.name));
-  const serverChannels = channels.filter(c => (c.serverId || "block-buddies") === activeServer);
+  const serverChannels = useMemo(() => channels.filter(c => (c.serverId || "block-buddies") === activeServer), [channels, activeServer]);
   const serverOrderGroups = useMemo(() => {
     const groups:Record<string,Channel[]>={};
     for(const category of channelCategories.filter(item=>item.serverId===activeServer).sort((a,b)=>a.name==="Text Channels"?-1:b.name==="Text Channels"?1:(a.position??0)-(b.position??0)||a.name.localeCompare(b.name)))groups[category.name]=[];
@@ -1385,19 +1385,23 @@ function App({ session }: { session: Session }) {
   useEffect(()=>{currentMessageIdsRef.current=currentMessageIds?currentMessageIds.split(","):[];},[currentMessageIds]);
   useEffect(()=>{const channel=supabase.channel("voax-reactions-"+activeKey).on("postgres_changes",{event:"*",schema:"public",table:"message_reactions"},payload=>{const eventType=(payload as any).eventType as string;const row=((eventType==="DELETE"?(payload as any).old:(payload as any).new)||{}) as {message_id?:string;user_id?:string;emoji?:string};if(!row.message_id||!row.emoji||row.user_id===session.user.id||!currentMessageIdsRef.current.includes(row.message_id))return;const delta=eventType==="DELETE"?-1:1;setMessages(old=>{const key=activeKeyRef.current;const list=old[key]||old[activeRef.current]||[];return{...old,[key]:list.map(message=>{if(message.id!==row.message_id)return message;const reactions=[...(message.reactions||[])];const index=reactions.findIndex(reaction=>reaction.emoji===row.emoji);if(index<0){if(delta<0)return message;reactions.push({emoji:row.emoji!,count:1,reacted:false});}else{const count=reactions[index].count+delta;if(count<=0)reactions.splice(index,1);else reactions[index]={...reactions[index],count};}return{...message,reactions};})};});}).subscribe();return()=>{void supabase.removeChannel(channel);};},[activeKey,session.user.id]);
 
-  const unblockedMessages = currentMessages.filter(message => {
-    const authorId = message.own ? session.user.id : people.find(person => person.name === message.author)?.id;
+  const peopleByName = useMemo(() => new Map(people.map(person => [person.name, person.id] as const)), [people]);
+  const unblockedMessages = useMemo(() => currentMessages.filter(message => {
+    const authorId = message.own ? session.user.id : peopleByName.get(message.author);
     return !authorId || !blockedUserIds.has(authorId);
-  });
-  const visibleMessages = search.trim() && (view === "channel" || view === "dm")
-    ? unblockedMessages.filter(message => message.text.toLowerCase().includes(search.trim().toLowerCase()) || message.author.toLowerCase().includes(search.trim().toLowerCase()))
-    : unblockedMessages;
+  }), [currentMessages, session.user.id, peopleByName, blockedUserIds]);
+  const visibleMessages = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return query && (view === "channel" || view === "dm")
+      ? unblockedMessages.filter(message => message.text.toLowerCase().includes(query) || message.author.toLowerCase().includes(query))
+      : unblockedMessages;
+  }, [unblockedMessages, search, view]);
   const unreadBoundaryKey = view === "channel" ? keyFor("channel", activeChannel?.id || "") : view === "dm" && activeConversationId ? "dm:" + activeConversationId : "";
   const unreadBoundaryCount = unreadBoundaryCounts[unreadBoundaryKey] || 0;
   const unreadBoundaryIndex = Math.max(0, visibleMessages.length - Math.min(unreadBoundaryCount, visibleMessages.length));
   const filteredPeople = useMemo(() => people.filter(p => !((view === "friends" || view === "home") && filter === "pending") && p.name.toLowerCase().includes(search.toLowerCase()) && (filter === "all" || filter === "pending" || p.online) && ((view !== "friends" && view !== "home") || p.isFriend)).sort((a,b) => (dmActivity[b.id] || 0) - (dmActivity[a.id] || 0)), [people, search, filter, view, dmActivity]);
   const filteredDMs = useMemo(() => people.filter(p => p.hasConversation && p.name.toLowerCase().includes(search.toLowerCase()) && (filter === "all" || filter === "pending" || p.online)).sort((a,b) => (dmActivity[b.id] || 0) - (dmActivity[a.id] || 0)), [people, search, filter, dmActivity]);
-  const filteredChannels = serverChannels.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredChannels = useMemo(() => serverChannels.filter(c => c.name.toLowerCase().includes(search.toLowerCase())), [serverChannels, search]);
   const channelGroups = useMemo(() => { const groups: Record<string, Channel[]> = {}; const categories=channelCategories.filter(item=>item.serverId===activeServer).sort((a,b)=>a.name==="Text Channels"?-1:b.name==="Text Channels"?1:(a.position??0)-(b.position??0)||a.name.localeCompare(b.name)); for (const category of categories) groups[category.name]=[]; for (const channel of filteredChannels) (groups[channel.category || "Text Channels"] ||= []).push(channel); for (const category of Object.keys(groups)) groups[category].sort((a,b)=>(a.position??0)-(b.position??0)||a.name.localeCompare(b.name)||a.id.localeCompare(b.id)); return Object.entries(groups); }, [filteredChannels, channelCategories, activeServer]);
 
   function notify(text: string) { setToast(text); }
