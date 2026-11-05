@@ -205,3 +205,24 @@
 .invite-preview-card-v2 .invite-preview-content{padding:13px}
 .server-icon.explore-rail-button{border:1px solid rgba(96,190,196,.28);color:#80d8d0}
 .server-icon.explore-rail-button:hover{background:rgba(65,181,179,.16);color:#b6fff1}
+
+/* Explore card loading placeholders mirror the final listing-card layout. */
+.discovery-skeleton-grid { align-items:stretch; }
+.discovery-card-skeleton { overflow:hidden;pointer-events:none; }
+.discovery-skeleton-banner { display:block;background:var(--surface,#101722); }
+.discovery-skeleton-banner>span { width:100%;height:100%;border-radius:0; }
+.discovery-card-skeleton .discovery-card-body { display:grid;align-content:start;gap:13px; }
+.discovery-card-skeleton .discovery-card-heading { min-width:0; }
+.discovery-card-skeleton .discovery-avatar { flex:0 0 42px;width:42px;height:42px;border-radius:13px; }
+.discovery-card-skeleton .skeleton-title-line { width:124px;max-width:100%;height:11px; }
+.discovery-card-skeleton .skeleton-meta-line { width:92px;height:7px;margin-top:8px; }
+.discovery-card-skeleton .skeleton-description-line { width:96%;height:8px; }
+.discovery-card-skeleton .skeleton-description-line.short { width:63%; }
+.discovery-card-skeleton .discovery-card-meta { display:flex;gap:10px; }
+.discovery-card-skeleton .skeleton-meta-pill { width:88px;height:8px; }
+.discovery-card-skeleton .skeleton-meta-pill:last-child { width:72px; }
+.discovery-card-skeleton .discovery-card-actions { display:flex;gap:9px;margin-top:2px; }
+.discovery-card-skeleton .skeleton-action { height:34px;flex:1;border-radius:8px; }
+:root[data-theme="light"] .discovery-card-skeleton { background:#fff;border-color:#d8e1eb; }
+:root[data-theme="light"] .discovery-skeleton-banner { background:#edf2f8; }
+@media(max-width:620px) { .discovery-skeleton-grid { grid-template-columns:minmax(0,1fr); } }
