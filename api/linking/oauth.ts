@@ -122,8 +122,8 @@ export default async function handler(req:any,res:any){
     .eq("id",eventId).maybeSingle();
    if(eventError)throw eventError;
    if(!event||event.status!=="sent"||!event.voax_message_id||!event.discord_message_id)return reply(res,404,{error:"This welcome message is no longer available."});
-   const link=event.channel_link;
-   if(!link.discord_welcome_sticker_id||!link.voax_welcome_sticker_url)return reply(res,400,{error:"Welcome stickers have not been configured for both platforms."});
+   const link=Array.isArray(event.channel_link)?event.channel_link[0]:event.channel_link;
+   if(!link||!link.discord_welcome_sticker_id||!link.voax_welcome_sticker_url)return reply(res,400,{error:"Welcome stickers have not been configured for both platforms."});
    const {data:member,error:memberError}=await admin.from("server_members").select("user_id").eq("server_id",link.voax_server_id).eq("user_id",user.id).maybeSingle();
    if(memberError)throw memberError;if(!member)return reply(res,403,{error:"You must be a member of this Voax server to send its welcome sticker."});
    const {data:profile}=await admin.from("profiles").select("username").eq("id",user.id).maybeSingle();
