@@ -100,7 +100,7 @@ export default async function handler(req:any,res:any){
    const voaxStickerUrl=String(req.body?.voaxWelcomeStickerUrl||"").trim();
    const discordTemplate=String(req.body?.discordWelcomeMessageTemplate||req.body?.welcomeMessageTemplate||"Welcome {user} to {server}!").trim();
    const voaxTemplate=String(req.body?.voaxWelcomeMessageTemplate||req.body?.welcomeMessageTemplate||"Welcome {user} to {server}!").trim();
-   if(discordStickerId&&!/^\\d{17,20}$/.test(discordStickerId))return reply(res,400,{error:"Enter a valid Discord sticker ID."});
+   if(discordStickerId&&!/^\d{17,20}$/.test(discordStickerId))return reply(res,400,{error:"Enter a valid Discord sticker ID."});
    if(voaxStickerUrl){
     try{const parsed=new URL(voaxStickerUrl);if(parsed.protocol!=="https:"||parsed.username||parsed.password)throw new Error();}
     catch{return reply(res,400,{error:"The Voax sticker must be a valid public HTTPS image or GIF URL."});}
