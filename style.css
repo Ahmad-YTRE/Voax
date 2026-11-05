@@ -4376,3 +4376,15 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .profile-popout-banner[style*="url("]{background-repeat:no-repeat}
 .profile-popout-banner[style*="url("]:after{background:linear-gradient(180deg,transparent 48%,#0002)}
 .profile-banner-upload-preview{height:104px;margin:8px 0 10px;display:grid;place-items:center;overflow:hidden;border:1px solid var(--border,#ffffff20);border-radius:9px;background:linear-gradient(125deg,color-mix(in srgb,var(--accent) 18%,var(--panel)),color-mix(in srgb,#818cf8 20%,var(--panel)));background-size:cover;background-position:center;color:var(--muted);font-size:11px}
+
+
+/* Optimistic message delivery: pending messages are visibly muted until saved. */
+.message-row-sending { opacity: .48; transition: opacity .18s ease; }
+.message-row-sending .message-body > p,
+.message-row-sending .message-content { color: #aeb7c6; }
+.message-send-status { display: inline-block; margin-left: 7px; color: #8d98aa; font-size: 10px; }
+.message-send-failed { display: inline-flex; align-items: center; gap: 6px; margin-left: 7px; color: #ed7777; font-size: 10px; }
+.message-send-failed button { padding: 0; border: 0; background: none; color: #ff9a9a; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.message-row-send-failed { opacity: .78; }
+.message-row-send-failed .message-body > p,
+.message-row-send-failed .message-content { color: #c0c5ce; }
