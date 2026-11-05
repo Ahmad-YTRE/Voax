@@ -4655,3 +4655,159 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
     align-items: center;
   }
 }
+
+
+/* Settings use Voax's active theme tokens, not Discord's fixed palette. */
+.discord-settings-modal,
+.discord-server-settings-modal {
+  background: var(--panel);
+  border-color: var(--line);
+  color: var(--text, #e6edf7);
+}
+.discord-settings-layout,
+.discord-server-settings-layout,
+.discord-settings-content {
+  background: var(--bg);
+  color: var(--text, #e6edf7);
+}
+.discord-settings-nav,
+.discord-server-settings-nav {
+  background: var(--panel);
+  border-color: var(--line);
+  color: var(--muted);
+}
+.discord-settings-nav-title {
+  color: var(--muted);
+}
+.discord-settings-nav button,
+.discord-server-settings-nav button {
+  color: var(--muted);
+}
+.discord-settings-nav button:hover,
+.discord-server-settings-nav button:hover {
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+  color: var(--text, #e6edf7);
+}
+.discord-settings-nav button.active,
+.discord-server-settings-nav button.active {
+  background: color-mix(in srgb, var(--accent) 13%, var(--card));
+  color: var(--text, #e6edf7);
+}
+.discord-settings-nav-divider {
+  background: var(--line);
+}
+.discord-settings-heading {
+  border-color: var(--line);
+}
+.discord-settings-heading .section-kicker,
+.discord-settings-nav button.active > svg,
+.discord-server-settings-nav button.active > svg {
+  color: var(--accent);
+}
+.discord-settings-heading h2,
+.settings-profile-banner strong,
+.settings-preference-row strong,
+.ping-setting-group h3 {
+  color: var(--text, #e6edf7);
+}
+.discord-settings-heading p,
+.settings-profile-banner small,
+.settings-help,
+.settings-preference-row small,
+.ping-setting-group > p {
+  color: var(--muted);
+}
+.discord-settings-content form > label:not(.btn) {
+  color: var(--text, #e6edf7);
+}
+.discord-settings-content input:not([type=checkbox]):not([type=file]),
+.discord-settings-content select,
+.discord-settings-content textarea {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--text, #e6edf7);
+}
+.discord-settings-content input:not([type=checkbox]):not([type=file]):focus,
+.discord-settings-content select:focus,
+.discord-settings-content textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.discord-settings-content .modal-actions {
+  border-color: var(--line);
+}
+.settings-profile-banner,
+.settings-preference-row,
+.ping-setting-group {
+  border-color: var(--line);
+  background: var(--card);
+}
+.settings-profile-banner .avatar {
+  border-color: var(--card);
+}
+.discord-server-nav-server {
+  border-bottom-color: var(--line);
+  color: var(--text, #e6edf7);
+}
+.discord-settings-modal .modal-x,
+.discord-server-settings-modal .modal-x {
+  background: transparent;
+  color: var(--muted);
+}
+.discord-settings-modal .modal-x:hover,
+.discord-server-settings-modal .modal-x:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  color: var(--text, #e6edf7);
+  border-color: var(--line);
+}
+.discord-settings-nav button.discord-settings-signout,
+.discord-server-settings-nav button.discord-server-danger {
+  color: #ef6b73;
+}
+.discord-settings-nav button.discord-settings-signout:hover,
+.discord-server-settings-nav button.discord-server-danger:hover {
+  background: color-mix(in srgb, #ef6b73 12%, var(--card));
+  color: #ef6b73;
+}
+:root[data-theme="light"] .discord-settings-layout,
+:root[data-theme="light"] .discord-server-settings-layout,
+:root[data-theme="light"] .discord-settings-content {
+  background: var(--bg);
+  color: #172033;
+}
+:root[data-theme="light"] .discord-settings-nav,
+:root[data-theme="light"] .discord-server-settings-nav {
+  background: var(--panel);
+  border-color: var(--line);
+  color: var(--muted);
+}
+:root[data-theme="light"] .discord-settings-nav button,
+:root[data-theme="light"] .discord-server-settings-nav button {
+  color: var(--muted);
+}
+:root[data-theme="light"] .discord-settings-nav button.active,
+:root[data-theme="light"] .discord-server-settings-nav button.active {
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  color: #172033;
+}
+:root[data-theme="light"] .discord-settings-heading h2,
+:root[data-theme="light"] .settings-profile-banner strong,
+:root[data-theme="light"] .settings-preference-row strong,
+:root[data-theme="light"] .ping-setting-group h3,
+:root[data-theme="light"] .discord-settings-content form > label:not(.btn) {
+  color: #172033;
+}
+:root[data-theme="light"] .discord-settings-heading p,
+:root[data-theme="light"] .settings-profile-banner small,
+:root[data-theme="light"] .settings-help,
+:root[data-theme="light"] .settings-preference-row small,
+:root[data-theme="light"] .ping-setting-group > p {
+  color: var(--muted);
+}
+:root[data-theme="light"] .discord-settings-content input:not([type=checkbox]):not([type=file]),
+:root[data-theme="light"] .discord-settings-content select,
+:root[data-theme="light"] .discord-settings-content textarea {
+  background: var(--card);
+  border-color: var(--line);
+  color: #172033;
+}
