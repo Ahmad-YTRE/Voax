@@ -384,32 +384,30 @@ async function recordDiscordSystemWelcome(message) {
 
 async function recordNativeWelcomeStickerReply(message) {
   if (message.author.bot || !message.guildId || !message.reference?.messageId || !message.stickers?.size) return;
-  const { data: event, error } = await supabase.from("discord_welcome_events")
-    .select("id,status")
+  const { data: events, error } = await supabase.from("discord_welcome_events")
+    .select("id,channel_link_id")
     .eq("discord_message_id", message.reference.messageId)
-    .eq("status", "sent")
-    .maybeSingle();
+    .eq("status", "sent");
   if (error) throw error;
-  if (!event) return;
+  if (!events?.length) return;
   const sticker = message.stickers.first();
   if (!sticker) return;
-  const { data: context, error: contextError } = await supabase
-    .from("discord_welcome_events").select("channel_link_id").eq("id", event.id).single();
-  if (contextError) throw contextError;
-  const linkContext = await getLinkContext(context.channel_link_id);
-  if (linkContext.integration.discord_guild_id !== message.guildId ||
-      linkContext.link.discord_channel_id !== message.channelId) return;
-  const { error: insertError } = await supabase.from("discord_welcome_actions").upsert({
-    welcome_event_id: event.id,
-    source_platform: "discord",
-    idempotency_key: `discord-native:${event.id}:${message.id}`,
-    actor_external_user_id: message.author.id,
-    actor_name: message.member?.displayName || message.author.globalName || message.author.username,
-    sticker_id: sticker.id,
-    sticker_url: sticker.url,
-    discord_reply_message_id: message.id,
-  }, { onConflict: "idempotency_key", ignoreDuplicates: true });
-  if (insertError) throw insertError;
+  for (const event of events) {
+    const linkContext = await getLinkContext(event.channel_link_id);
+    if (linkContext.integration.discord_guild_id !== message.guildId ||
+        linkContext.link.discord_channel_id !== message.channelId) continue;
+    const { error: insertError } = await supabase.from("discord_welcome_actions").upsert({
+      welcome_event_id: event.id,
+      source_platform: "discord",
+      idempotency_key: `discord-native:${event.id}:${message.id}`,
+      actor_external_user_id: message.author.id,
+      actor_name: message.member?.displayName || message.author.globalName || message.author.username,
+      sticker_id: sticker.id,
+      sticker_url: sticker.url,
+      discord_reply_message_id: message.id,
+    }, { onConflict: "idempotency_key", ignoreDuplicates: true });
+    if (insertError) throw insertError;
+  }
 }
 
 async function handleWelcomeButton(interaction) {
