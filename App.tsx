@@ -496,8 +496,8 @@ function MessageContent({ text, onJoinInvite, onOpenProfile, servers = [], membe
     if(/^@.+$/s.test(token)){const label=token.slice(1).toLocaleLowerCase();const role=roles.find(item=>item.name.toLocaleLowerCase()===label);const person=members.find(item=>item.name.toLocaleLowerCase()===label);const kind=/^everyone$/i.test(label)?"everyone":/^here$/i.test(label)?"here":role?"role":person?"user":"generic";if(kind==="user"&&person)return <button key={key} type="button" className="mention-pill mention-pill-user mention-pill-clickable" title={"View "+person.name+"’s profile"} onClick={event=>{event.stopPropagation();onOpenProfile(person);}}><span className="mention-pill-avatar">{person.avatarUrl?<img src={person.avatarUrl} alt="" loading="lazy"/>:initials(person.name)}</span><span>{token}</span></button>;return <span key={key} className={"mention-pill mention-pill-"+kind}>{token}</span>;}
     return <React.Fragment key={key}>{token}</React.Fragment>;
   });
-  const tick=String.fromCharCode(96);
-  const inlinePattern=new RegExp("(\\|\\|[\\s\\S]+?\\|\\||\\*\\*[\\s\\S]+?\\*\\*|__[\\s\\S]+?__|~~[\\s\\S]+?~~|"+tick+"[^"+tick+"\\n]+"+tick+"|\\[[^\\]]+\\]\\(https?:\\/\\/[^)\\s]+\\)|\\*[^*\\n]+\\*|_[^_\\n]+_)","g");
+  const tick=MESSAGE_MARKDOWN_TICK;
+  const inlinePattern=new RegExp(MESSAGE_INLINE_PATTERN_SOURCE,"g");
   const renderInline=(value:string,keyPrefix:string,depth=0):React.ReactNode[]=>{
     if(depth>6)return renderPlain(value,keyPrefix);
     const syntax=new RegExp(inlinePattern.source,"g");const output:React.ReactNode[]=[];let cursor=0;let match:RegExpExecArray|null;
