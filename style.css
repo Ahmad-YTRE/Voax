@@ -5173,3 +5173,50 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   color: #166b54;
   background: #e5f5ef;
 }
+
+/* Refined loading skeletons: soft depth, staggered shimmer and responsive shapes. */
+.skeleton-bar { background:linear-gradient(105deg,#1b2634 8%,#26384a 20%,#1b2634 34%);background-size:240% 100%;animation:voax-skeleton-shimmer 1.55s linear infinite;will-change:background-position; }
+.skeleton-bar::after { content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,transparent,#ffffff08,transparent);transform:translateX(-100%);animation:voax-skeleton-glint 2.2s ease-in-out infinite; }
+.skeleton-bar:nth-child(2n)::after { animation-delay:.18s; }
+.skeleton-bar:nth-child(3n)::after { animation-delay:.36s; }
+@keyframes voax-skeleton-shimmer { from{background-position:100% 0}to{background-position:-140% 0} }
+@keyframes voax-skeleton-glint { 0%,18%{transform:translateX(-100%)}68%,100%{transform:translateX(100%)} }
+.skeleton-message-row:nth-child(2n) .skeleton-avatar,.skeleton-person-row:nth-child(2n) .skeleton-avatar { border-radius:50%; }
+.skeleton-message-row:nth-child(3n) .message-line { width:61%; }
+.skeleton-message-row:nth-child(4n) .message-line-short { width:29%; }
+.dm-skeleton-row:nth-child(2n) { margin-left:clamp(0px,2vw,20px); }
+.dm-home-skeleton-card:nth-child(2n) { margin-left:clamp(0px,2vw,18px); }
+.workspace-loading .skeleton-server:nth-of-type(3n) { border-radius:50%; }
+.skeleton-member-panel .skeleton-person-row:nth-child(3n) .skeleton-avatar { border-radius:50%; }
+.discussion-loading-list { display:grid;gap:12px;padding:4px 0 18px; }
+.discussion-post-skeleton { display:grid;gap:13px;padding:17px 18px;border:1px solid var(--border,#293342);border-radius:12px;background:var(--panel,#151d29); }
+.discussion-skeleton-heading,.discussion-skeleton-footer { display:flex;align-items:center;gap:12px; }
+.discussion-skeleton-heading { justify-content:space-between; }
+.discussion-skeleton-heading .skeleton-line.wide { width:min(230px,58%);height:12px; }
+.discussion-skeleton-heading .skeleton-line.short { width:54px;height:8px; }
+.discussion-skeleton-copy { width:min(92%,580px);height:9px; }
+.discussion-skeleton-copy-short { width:min(58%,360px);height:9px; }
+.discussion-skeleton-footer { padding-top:2px; }
+.discussion-skeleton-footer .skeleton-avatar { width:25px;height:25px;border-radius:50%; }
+.discussion-skeleton-footer .skeleton-line { width:100px;height:7px; }
+.ticket-skeleton-view { display:grid;align-content:start; }
+.ticket-panel-skeleton { min-height:390px; }
+.ticket-skeleton-eyebrow { width:118px;height:9px; }
+.ticket-skeleton-art { width:58px;height:58px;border-radius:15px;flex:0 0 58px; }
+.ticket-skeleton-heading { display:grid;gap:10px;flex:1; }
+.ticket-skeleton-title { width:min(270px,70%);height:23px; }
+.ticket-skeleton-copy { width:min(420px,90%);height:9px; }
+.ticket-skeleton-button { width:156px;height:42px;border-radius:9px; }
+.ticket-skeleton-label { width:112px;height:10px; }
+.ticket-skeleton-label.short { width:66px; }
+.ticket-category-skeleton { cursor:default;min-height:64px; }
+.ticket-skeleton-category-icon { width:36px;height:36px;border-radius:9px; }
+.ticket-category-skeleton>span:nth-child(2) { display:grid;gap:8px;flex:1; }
+.ticket-skeleton-category-title { width:105px;height:9px; }
+.ticket-skeleton-category-copy { width:155px;max-width:100%;height:7px; }
+@media(prefers-reduced-motion:reduce) { .skeleton-bar{animation:none!important;background:#263343}.skeleton-bar::after{animation:none!important;display:none} }
+:root[data-theme="light"] .skeleton-bar { background:linear-gradient(105deg,#e1e8f0 8%,#f9fbfd 20%,#e1e8f0 34%);background-size:240% 100%; }
+:root[data-theme="light"] .skeleton-bar::after { background:linear-gradient(90deg,transparent,#ffffffb8,transparent); }
+:root[data-theme="light"] .discussion-post-skeleton { background:#fff;border-color:#d8e1eb; }
+:root[data-theme="light"] .ticket-panel-skeleton { background:linear-gradient(145deg,#fff,#f7f9fc 70%);border-color:#d8e1eb; }
+@media(prefers-reduced-motion:reduce) { :root[data-theme="light"] .skeleton-bar{background:#e6edf4} }
