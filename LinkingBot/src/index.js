@@ -207,7 +207,7 @@ async function createVoaxStickerReply(action, event, context) {
   const { data, error } = await supabase.from("messages").insert({
     channel_id: context.link.voax_channel_id,
     author_id: authorId,
-    body: "",
+    body: "sent a welcome sticker",
     reply_to: event.voax_message_id,
     attachments: [{
       path: `welcome-sticker:${action.id}`,
