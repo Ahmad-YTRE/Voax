@@ -87,7 +87,7 @@ async function createVoaxWelcomeMessage(event, context, discordMessageId) {
   const joinedServer = event.source_platform === "discord"
     ? context.integration.discord_guild_name
     : context.server.name;
-  const body = renderTemplate(context.link.welcome_message_template, { user: event.member_name, server: joinedServer, memberCount: event.member_count });
+  const body = renderTemplate(context.link.voax_welcome_message_template || context.link.welcome_message_template, { user: event.member_name, server: joinedServer, memberCount: event.member_count });
   const buttonEnabled = Boolean(context.link.discord_welcome_sticker_id && context.link.voax_welcome_sticker_url);
   const metadata = {
     platform: event.source_platform,
@@ -125,7 +125,7 @@ async function processWelcomeEvent(event) {
   const joinedServer = event.source_platform === "discord"
     ? context.integration.discord_guild_name
     : context.server.name;
-  const messageText = renderTemplate(context.link.welcome_message_template, {
+  const messageText = renderTemplate(context.link.discord_welcome_message_template || context.link.welcome_message_template, {
     user: event.member_name,
     server: joinedServer,
     memberCount: event.member_count,
