@@ -37,7 +37,7 @@ function WelcomeSettings({link,serverId,canManage}:{link:Link;serverId:string;ca
   <label>Discord welcome sticker ID<input value={discordSticker} onChange={e=>setDiscordSticker(e.target.value)} placeholder="Discord sticker ID"/></label>
   <label>Voax welcome sticker image URL<input type="url" value={voaxSticker} onChange={e=>setVoaxSticker(e.target.value)} placeholder="https://…/welcome-sticker.gif"/></label>
   <label>Welcome message<input value={template} onChange={e=>setTemplate(e.target.value)} maxLength={500} placeholder="Welcome {user} to {server}!"/></label>
-  <small>Use {user}, {server} and {member_count} as placeholders. The sticker button appears only when both stickers are configured. Disable Discord's built-in system join message in this channel if you want to avoid duplicate welcomes.</small>
+  <small>Use {'{user}'}, {'{server}'} and {'{member_count}'} as placeholders. The sticker button appears only when both stickers are configured. Disable Discord's built-in system join message in this channel if you want to avoid duplicate welcomes.</small>
   {error&&<span className="error-text">{error}</span>}{saved&&<span className="voax-linking-saved">Welcome settings saved.</span>}
   <button type="button" className="btn primary" disabled={busy} onClick={()=>void save()}>{busy?"Saving…":"Save welcome settings"}</button>
  </div>}</div>;
