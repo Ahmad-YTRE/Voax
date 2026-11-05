@@ -214,7 +214,7 @@ async function createVoaxStickerReply(action, event, context) {
     attachments: [{
       path: `welcome-sticker:${action.id}`,
       name: "Welcome sticker",
-      mimeType: /\\.gif(?:[?#]|$)/i.test(action.sticker_url || context.link.voax_welcome_sticker_url || "") ? "image/gif" : "image/png",
+      mimeType: /\.gif(?:[?#]|$)/i.test(action.sticker_url || context.link.voax_welcome_sticker_url || "") ? "image/gif" : "image/png",
       size: 0,
       url: action.sticker_url || context.link.voax_welcome_sticker_url,
     }],
