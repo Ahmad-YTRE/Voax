@@ -87,7 +87,7 @@ async function createVoaxWelcomeMessage(event, context, discordMessageId) {
   const joinedServer = event.source_platform === "discord"
     ? context.integration.discord_guild_name
     : context.server.name;
-  const body = `**${event.member_name}** joined the **${originName} server** ${joinedServer}.`;
+  const body = renderTemplate(context.link.welcome_message_template, { user: event.member_name, server: joinedServer, memberCount: event.member_count });
   const buttonEnabled = Boolean(context.link.discord_welcome_sticker_id && context.link.voax_welcome_sticker_url);
   const metadata = {
     platform: event.source_platform,
