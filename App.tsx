@@ -443,6 +443,9 @@ function Landing({ openApp }: { openApp: () => void }) {
   </div>;
 }
 
+const MESSAGE_MARKDOWN_TICK = String.fromCharCode(96);
+const MESSAGE_INLINE_PATTERN_SOURCE = "(\\|\\|[\\s\\S]+?\\|\\||\\*\\*[\\s\\S]+?\\*\\*|__[\\s\\S]+?__|~~[\\s\\S]+?~~|"+MESSAGE_MARKDOWN_TICK+"[^"+MESSAGE_MARKDOWN_TICK+"\\n]+"+MESSAGE_MARKDOWN_TICK+"|\\[[^\\]]+\\]\\(https?:\\/\\/[^)\\s]+\\)|\\*[^*\\n]+\\*|_[^_\\n]+_)";
+const MESSAGE_PLAIN_PATTERN_CACHE = new Map<string,RegExp>();
 type LinkPreviewData = { url: string; title?: string; description?: string; image?: string; siteName?: string; hostname?: string };
 function LinkPreview({ url }: { url: string }) {
   const [data, setData] = useState<LinkPreviewData | null>(null);
@@ -462,8 +465,14 @@ function LinkPreview({ url }: { url: string }) {
 }
 function MessageContent({ text, onJoinInvite, onOpenProfile, servers = [], members = [], roles = [], onlineCounts = {} }: { text: string; onJoinInvite: (code: string) => void; onOpenProfile: (person: Person) => void; servers?: Server[]; members?: Person[]; roles?: ServerRole[]; onlineCounts?: Record<string,number> }) {
   const mentionLabels = [...members.map(person => person.name), ...roles.map(role => role.name)].filter(label => label.trim() && label !== "User").sort((a,b)=>b.length-a.length);
-  const labelPattern = mentionLabels.length ? mentionLabels.map(escapeMentionLabel).join("|")+"|" : "";
-  const plainPattern = new RegExp("(https?:\\/\\/[^\\s<>()]+|\\/invite\\/[A-Za-z0-9_-]+|<t:\\d{1,12}(?::[tTdDfFR])?>|@everyone\\b|@here\\b|@(?:"+labelPattern+"[A-Za-z0-9_-]+)(?=$|[^A-Za-z0-9_]))","gi");
+  const mentionKey = mentionLabels.join("\\u0000");
+  let plainPattern = MESSAGE_PLAIN_PATTERN_CACHE.get(mentionKey);
+  if (!plainPattern) {
+    const labelPattern = mentionLabels.length ? mentionLabels.map(escapeMentionLabel).join("|")+"|" : "";
+    plainPattern = new RegExp("(https?:\\/\\/[^\\s<>()]+|\\/invite\\/[A-Za-z0-9_-]+|<t:\\d{1,12}(?::[tTdDfFR])?>|@everyone\\b|@here\\b|@(?:"+labelPattern+"[A-Za-z0-9_-]+)(?=$|[^A-Za-z0-9_]))","gi");
+    if (MESSAGE_PLAIN_PATTERN_CACHE.size >= 100) MESSAGE_PLAIN_PATTERN_CACHE.delete(MESSAGE_PLAIN_PATTERN_CACHE.keys().next().value!);
+    MESSAGE_PLAIN_PATTERN_CACHE.set(mentionKey, plainPattern);
+  }
   const renderPlain = (value:string,keyPrefix:string):React.ReactNode[] => value.split(plainPattern).filter(Boolean).map((token,index)=>{
     const key=keyPrefix+"-"+index;
     const timestamp=token.match(/^<t:(\d{1,12})(?::([tTdDfFR]))?>$/);
