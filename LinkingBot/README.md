@@ -27,7 +27,7 @@ npm install
 npm start
 ```
 
-Run this process on an always-on Node host (for example, a small worker service). Vercel serverless functions are not suitable for a persistent Discord Gateway connection.
+When deploying from the GitHub repository, set the service root directory to `/LinkingBot`, the build command to `npm install`, and the start command to `npm start`. Run this process on an always-on Node host (for example, Railway). Vercel serverless functions are not suitable for a persistent Discord Gateway connection.
 
 ## Discord permissions
 
