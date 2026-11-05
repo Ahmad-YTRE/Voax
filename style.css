@@ -2827,10 +2827,9 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .dm-item-row .dm-item{flex:1;width:0;min-width:0;border:0;background:transparent;}
 .dm-item-row:hover .dm-item,.dm-item-row.active .dm-item{background:transparent;border-color:transparent;}
 .dm-close-btn{display:grid;place-items:center;flex:0 0 27px;width:27px;height:27px;margin-right:4px;border:0;border-radius:6px;background:transparent;color:#8290a5;opacity:0;pointer-events:none;transition:opacity .14s ease,background .14s ease,color .14s ease;}
-.dm-item-row:hover .dm-close-btn,.dm-item-row:focus-within .dm-close-btn{opacity:1;pointer-events:auto;}
+.dm-item:hover + .dm-close-btn{opacity:1;pointer-events:auto;}
 .dm-close-btn:hover{background:#ed42451a;color:#ff6b70;}
 .dm-ping-count{margin-left:auto;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ed4245;color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;}
-@media (hover:none){.dm-close-btn{opacity:1;pointer-events:auto;}}
 
 
 /* Mutual server list in profile cards. Contain keeps wide server logos fully visible. */
