@@ -1928,7 +1928,7 @@ function App({ session }: { session: Session }) {
       setMessages(old=>Object.fromEntries(Object.entries(old).map(([key,list])=>{
         if(key!==retryData.activeKey&&key!==retryData.active)return[key,list];
         const withoutPending=list.filter(message=>message.id!==tempId);
-        return[key,withoutPending.some(message=>message.id===item.id)?withoutPending:[...withoutPending,item]];
+        const existingIndex=withoutPending.findIndex(message=>message.id===item.id);if(existingIndex>=0)withoutPending[existingIndex]=item;else withoutPending.push(item);return[key,withoutPending];
       })));
       if(retryData.personId)setDmActivity(old=>({...old,[retryData.personId!]:new Date(data.created_at).getTime()}));
       setPeople(old=>old.map(person=>person.id===retryData.personId?{...person,preview:retryData.body||"Shared an attachment",hasConversation:true}:person));
