@@ -229,7 +229,7 @@ async function processWelcomeAction(action) {
   const { data: event, error: eventError } = await supabase
     .from("discord_welcome_events").select("*").eq("id", action.welcome_event_id).maybeSingle();
   if (eventError) throw eventError;
-  if (!event || event.status !== "sent" || !event.discord_message_id || !event.voax_message_id) {
+  if (!event || !event.discord_message_id) {
     throw new Error("The welcome message is not ready for sticker replies.");
   }
   const context = await getLinkContext(event.channel_link_id);
