@@ -38,7 +38,7 @@ function WelcomeSettings({link,serverId,canManage}:{link:Link;serverId:string;ca
   <label>Voax welcome sticker image URL<input type="url" value={voaxSticker} onChange={e=>setVoaxSticker(e.target.value)} placeholder="https://…/welcome-sticker.gif"/></label>
   <label>Discord welcome message<input value={discordTemplate} onChange={e=>setDiscordTemplate(e.target.value)} maxLength={500} placeholder="Welcome {user} to {server}!"/></label>
   <label>Voax welcome message<input value={voaxTemplate} onChange={e=>setVoaxTemplate(e.target.value)} maxLength={500} placeholder="Welcome {user} to {server}!"/></label>
-  <small>Use {'{user}'}, {'{server}'} and {'{member_count}'} as placeholders. The sticker button appears only when both stickers are configured. Disable Discord's built-in system join message in this channel if you want to avoid duplicate welcomes.</small>
+  <small>Use {'{user}'}, {'{server}'} and {'{member_count}'} as placeholders. The sticker button appears only when both stickers are configured. If this linked channel is Discord's system welcome channel, Voax Linking reuses Discord's native welcome message and captures its sticker replies. Otherwise it posts a bot welcome card with its own sticker button.</small>
   {error&&<span className="error-text">{error}</span>}{saved&&<span className="voax-linking-saved">Welcome settings saved.</span>}
   <button type="button" className="btn primary" disabled={busy} onClick={()=>void save()}>{busy?"Saving…":"Save welcome settings"}</button>
  </div>}</div>;
