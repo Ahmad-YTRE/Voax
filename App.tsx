@@ -191,7 +191,12 @@ async function hydrateMentionTypes(rows: AppNotification[], userId: string): Pro
 }
 
 type CachedProfile = { id: string; public_id: string | null; username: string | null; status: string | null; avatar_url: string | null; banner_url: string | null; bio: string | null };
-const PROFILE_CACHE_TTL_MS = 30_000;
+const PROFILE_CACHE_TTL_MS = 5 * 60_000;
+
+// Shared in-memory cache for recently opened conversations. It survives App
+// remounts within the tab, so returning to a conversation can render instantly.
+const CONVERSATION_MESSAGE_CACHE_TTL_MS = 30_000;
+const conversationMessageCache = new Map<string, { messages: Message[]; fetchedAt: number }>();
 const profileCache = new Map<string, { value: CachedProfile | null; expiresAt: number }>();
 async function loadCachedProfiles(ids: string[]): Promise<CachedProfile[]> {
   const uniqueIds = [...new Set(ids)];
@@ -1131,9 +1136,15 @@ function App({ session }: { session: Session }) {
     const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?activeConversationId:null;
     if(!channelId&&!conversationId||channelId&&activeChannel&&activeChannel.channelType!=="text"&&activeChannel.channelType!=="ticket"){setMessagesLoading(false);return;}
     let cancelled=false;
-    const cachedMessages=messages[activeKey]||messages[active]||[];
+    const sharedCache=conversationMessageCache.get(activeKey);
+    const cachedMessages=messages[activeKey]||messages[active]||sharedCache?.messages||[];
     // Keep cached messages visible while refreshing in the background.
     setMessagesLoading(cachedMessages.length===0);
+    if(sharedCache&&Date.now()-sharedCache.fetchedAt<CONVERSATION_MESSAGE_CACHE_TTL_MS){
+      if(!(messages[activeKey]||messages[active])&&sharedCache.messages.length)setMessages(old=>({...old,[activeKey]:sharedCache.messages,[active]:sharedCache.messages}));
+      setMessagesLoading(false);
+      return()=>{cancelled=true;};
+    }
     const loadMessages=async()=>{
       const result=channelId
         ?await supabase.from("messages").select("id,author_id,body,created_at,edited_at,reply_to,channel_id,conversation_id,attachments,bridge_metadata,bridge_source").eq("channel_id",channelId).order("created_at",{ascending:false}).limit(200)
@@ -1154,6 +1165,7 @@ function App({ session }: { session: Session }) {
       // must not hold the conversation hostage.
       const emptyReactions=new Map<string,Reaction[]>(),emptyAttachments=new Map<string,string>();
       const baseMessages=mapRows(emptyReactions,emptyAttachments);
+      conversationMessageCache.set(activeKey,{messages:baseMessages,fetchedAt:Date.now()});
       setMessages(old=>({...old,[activeKey]:baseMessages,[active]:baseMessages}));
       setMessagesLoading(false);
       const enrichmentTasks:Promise<unknown>[]=[];
@@ -1350,6 +1362,15 @@ function App({ session }: { session: Session }) {
     return()=>{if(typingTimeoutRef.current!==null)window.clearTimeout(typingTimeoutRef.current);typingChannelRef.current=null;void supabase.removeChannel(channel);};
   },[activeKey,session.user.id]);
 
+  // Keep the shared cache synchronized with reactions, edits, optimistic sends,
+  // and realtime updates without extending the cache freshness window.
+  useEffect(()=>{
+    for(const [key,list] of Object.entries(messages)){
+      if(!list.length)continue;
+      const cached=conversationMessageCache.get(key);
+      conversationMessageCache.set(key,{messages:list,fetchedAt:cached?.fetchedAt||Date.now()});
+    }
+  },[messages]);
   const currentMessages = messages[activeKey] || messages[active] || [];
   const currentMessageIds = currentMessages.map(message=>message.id).join(",");
   useEffect(()=>{currentMessageIdsRef.current=currentMessageIds?currentMessageIds.split(","):[];},[currentMessageIds]);
