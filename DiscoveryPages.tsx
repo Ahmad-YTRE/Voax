@@ -41,6 +41,19 @@ function PageFrame({children,active="explore",embedded=false}:{children:React.Re
     <main className="discovery-main">{children}</main>
   </div>;
 }
+function DiscoverySkeletonGrid() {
+  return <div className="discovery-grid discovery-skeleton-grid" role="status" aria-label="Loading communities" aria-busy="true">
+    {Array.from({length:6},(_,i)=><article className="discovery-card discovery-card-skeleton" key={i}>
+      <div className="discovery-card-banner discovery-skeleton-banner"><span className="skeleton-bar"/></div>
+      <div className="discovery-card-body">
+        <div className="discovery-card-heading"><span className="discovery-avatar skeleton-bar"/><div className="discovery-card-title"><span className="skeleton-bar skeleton-title-line"/><span className="skeleton-bar skeleton-meta-line"/></div></div>
+        <span className="skeleton-bar skeleton-description-line"/><span className="skeleton-bar skeleton-description-line short"/>
+        <div className="discovery-card-meta"><span className="skeleton-bar skeleton-meta-pill"/><span className="skeleton-bar skeleton-meta-pill"/></div>
+        <div className="discovery-card-actions"><span className="skeleton-bar skeleton-action"/><span className="skeleton-bar skeleton-action primary"/></div>
+      </div>
+    </article>)}
+  </div>;
+}
 function ServerAvatar({name,url}:{name:string;url:string|null}) {
   return <span className="discovery-avatar">{url?<img src={url} alt=""/>:initials(name)}</span>;
 }
@@ -129,7 +142,7 @@ export function ExplorePage({session,embedded=false,routePath,onNavigate,onlineC
     <div className="discovery-search"><Icon name="search" size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search communities, topics and tags…"/><kbd>⌕</kbd></div>
     <div className="discovery-categories"><button className={category==="All"?"active":""} onClick={()=>setCategory("All")}>All</button>{CATEGORIES.map(item=><button key={item} className={category===item?"active":""} onClick={()=>setCategory(item)}>{item}</button>)}</div>
     <div className="discovery-toolbar"><div><h2>{query||category!=="All"?"Search results":sort==="featured"?"Discover communities":sort==="popular"?"Popular servers":"New servers"}</h2><span>{formatCount(sorted.length)} communities</span></div><div className="discovery-sort"><button className={sort==="featured"?"active":""} onClick={()=>setSort("featured")}><Icon name="star" size={14}/> Featured</button><button className={sort==="popular"?"active":""} onClick={()=>setSort("popular")}>Popular</button><button className={sort==="new"?"active":""} onClick={()=>setSort("new")}>New</button></div></div>
-    {loading?<div className="discovery-loading">Loading communities…</div>:sorted.length?<div className="discovery-grid">{sorted.map(item=><ListingCard key={item.listing_id} listing={item} member={members.has(item.server_id)} onOpen={()=>navigate("/explore/server/"+(item.server_public_id||item.server_id))} onJoin={()=>void join(item)}/>)}</div>:<div className="discovery-empty"><span>✦</span><h2>No communities found</h2><p>Try another search or category. New communities are always welcome.</p></div>}
+    {loading?<DiscoverySkeletonGrid/>:sorted.length?<div className="discovery-grid">{sorted.map(item=><ListingCard key={item.listing_id} listing={item} member={members.has(item.server_id)} onOpen={()=>navigate("/explore/server/"+(item.server_public_id||item.server_id))} onJoin={()=>void join(item)}/>)}</div>:<div className="discovery-empty"><span>✦</span><h2>No communities found</h2><p>Try another search or category. New communities are always welcome.</p></div>}
     <footer className="discovery-footer">Discover something new on Voax.</footer>
   </div></PageFrame>;
 }
