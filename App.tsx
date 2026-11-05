@@ -1630,62 +1630,67 @@ function App({ session }: { session: Session }) {
   }
   async function loadWorkspace() {
     const uid=session.user.id;
-    const [staffResult,blockResult,banResult,membershipResult]=await Promise.all([
+    // Fetch independent account, membership, friendship and DM-index data together.
+    const [staffResult,blockResult,banResult,membershipResult,friendResult,ownConvResult]=await Promise.all([
       supabase.from("voax_staff_roles").select("role").eq("user_id",uid).maybeSingle(),
       supabase.from("voax_account_blocks").select("blocked_id").eq("blocker_id",uid),
       supabase.from("voax_account_bans").select("id,reason,duration,expires_at").eq("user_id",uid).eq("status","active").order("created_at",{ascending:false}).limit(1).maybeSingle(),
-      supabase.from("server_members").select("server_id").eq("user_id",uid)
+      supabase.from("server_members").select("server_id").eq("user_id",uid),
+      supabase.from("friendships").select("id,requester_id,addressee_id,status").or("requester_id.eq."+uid+",addressee_id.eq."+uid),
+      supabase.from("conversation_members").select("conversation_id,hidden_at").eq("user_id",uid)
     ]);
     if(!staffResult.error)setStaffRole((staffResult.data?.role||null) as "owner"|"admin"|"moderator"|null);
     if(!blockResult.error)setBlockedUserIds(new Set((blockResult.data||[]).map(row=>row.blocked_id)));
     if(!banResult.error){
       const currentBan=banResult.data&&(!banResult.data.expires_at||new Date(banResult.data.expires_at)>new Date())?banResult.data:null;
       setAccountBan(currentBan);
-      if(currentBan){const appeal=await supabase.from("voax_ban_appeals").select("id").eq("ban_id",currentBan.id).maybeSingle();setAppealSubmitted(Boolean(appeal.data));}
+      if(currentBan)void supabase.from("voax_ban_appeals").select("id").eq("ban_id",currentBan.id).maybeSingle().then(appeal=>setAppealSubmitted(Boolean(appeal.data)));
     }
     if(membershipResult.error)throw membershipResult.error;
+    if(friendResult.error)throw friendResult.error;
+    if(ownConvResult.error)throw ownConvResult.error;
+    const {data:friendships}=friendResult;
+    const {data:ownConvs}=ownConvResult;
     const serverIds=[...new Set((membershipResult.data||[]).map(row=>row.server_id))];
-    setPresenceServerIds([]);
-    let serverRows:any[]=[],channelRows:any[]=[],serverMemberRows:any[]=[],categoryRows:any[]=[];
-    if(serverIds.length){
-      const [sr,cr,mr,cat]=await Promise.all([
-        supabase.from("servers").select("id,public_id,name,description,created_by,invite_code,icon_url,banner_url").in("id",serverIds).order("created_at"),
-        supabase.from("channels").select("id,public_id,server_id,name,description,category,category_id,position,channel_type,permissions_synced").in("server_id",serverIds).order("position").order("created_at"),
-        supabase.from("server_members").select("server_id,user_id").in("server_id",serverIds),
-        supabase.from("channel_categories").select("id,server_id,name,position").in("server_id",serverIds).order("position").order("created_at")]);
-      if(sr.error)throw sr.error;if(cr.error)throw cr.error;if(mr.error)throw mr.error;if(cat.error)throw cat.error;
-      serverRows=sr.data||[];channelRows=cr.data||[];serverMemberRows=mr.data||[];categoryRows=cat.data||[];
-    }
-    const [friendResult,ownConvResult]=await Promise.all([
-      supabase.from("friendships").select("id,requester_id,addressee_id,status").or("requester_id.eq."+uid+",addressee_id.eq."+uid),
-      supabase.from("conversation_members").select("conversation_id,hidden_at").eq("user_id",uid)
-    ]);
-    const {data:friendships,error:friendError}=friendResult;
-    const {data:ownConvs,error:convError}=ownConvResult;
-    if(friendError)throw friendError;if(convError)throw convError;
     const convIds=[...new Set((ownConvs||[]).filter(row=>!row.hidden_at).map(row=>row.conversation_id))];
+    setPresenceServerIds([]);
+
+    // Server data and DM activity/member data are independent after their IDs are known.
+    const serverDataPromise=serverIds.length?Promise.all([
+      supabase.from("servers").select("id,public_id,name,description,created_by,invite_code,icon_url,banner_url").in("id",serverIds).order("created_at"),
+      supabase.from("channels").select("id,public_id,server_id,name,description,category,category_id,position,channel_type,permissions_synced").in("server_id",serverIds).order("position").order("created_at"),
+      supabase.from("server_members").select("server_id,user_id").in("server_id",serverIds),
+      supabase.from("channel_categories").select("id,server_id,name,position").in("server_id",serverIds).order("position").order("created_at")
+    ]):Promise.resolve(null);
     const convMembersPromise=convIds.length
       ?supabase.from("conversation_members").select("conversation_id,user_id").in("conversation_id",convIds)
       :Promise.resolve({data:[],error:null});
     const latestMessagesPromise=convIds.length
       ?supabase.from("messages").select("conversation_id,created_at").in("conversation_id",convIds).order("created_at",{ascending:false}).limit(1000)
       :Promise.resolve({data:[],error:null});
-    const unreadCountsPromise=channelRows.length
-      ?supabase.rpc("get_unread_channel_counts")
-      :Promise.resolve({data:[],error:null});
-    const [convMembersResult,latestMessagesResult,unreadCountsResult]=await Promise.all([convMembersPromise,latestMessagesPromise,unreadCountsPromise]);
+    const [serverData,convMembersResult,latestMessagesResult]=await Promise.all([serverDataPromise,convMembersPromise,latestMessagesPromise]);
+    let serverRows:any[]=[],channelRows:any[]=[],serverMemberRows:any[]=[],categoryRows:any[]=[];
+    if(serverData){
+      const [sr,cr,mr,cat]=serverData;
+      if(sr.error)throw sr.error;if(cr.error)throw cr.error;if(mr.error)throw mr.error;if(cat.error)throw cat.error;
+      serverRows=sr.data||[];channelRows=cr.data||[];serverMemberRows=mr.data||[];categoryRows=cat.data||[];
+    }
     if(convMembersResult.error)throw convMembersResult.error;
     if(latestMessagesResult.error)throw latestMessagesResult.error;
-    if(unreadCountsResult.error)throw unreadCountsResult.error;
+
+    const unreadCountsPromise=channelRows.length?supabase.rpc("get_unread_channel_counts"):Promise.resolve({data:[],error:null});
     const latestActivityByConversation:Record<string,number>={};
     for(const row of latestMessagesResult.data||[])if(row.conversation_id&&!latestActivityByConversation[row.conversation_id])latestActivityByConversation[row.conversation_id]=new Date(row.created_at).getTime();
     const convMembers:any[]=convMembersResult.data||[];
-    const unreadByChannel:Record<string,number>=Object.fromEntries((unreadCountsResult.data||[]).map((row:{channel_id:string;unread_count:number|string})=>[keyFor("channel",row.channel_id),Number(row.unread_count)||0]));
+    const unreadByChannelPromise=unreadCountsPromise.then(result=>{
+      if(result.error)throw result.error;
+      return Object.fromEntries((result.data||[]).map((row:{channel_id:string;unread_count:number|string})=>[keyFor("channel",row.channel_id),Number(row.unread_count)||0]));
+    });
     const related=new Set<string>();
     for(const row of serverMemberRows)if(row.user_id!==uid)related.add(row.user_id);
     for(const row of friendships||[]){const id=row.requester_id===uid?row.addressee_id:row.requester_id;if(id!==uid)related.add(id);}
     for(const row of convMembers)if(row.user_id!==uid)related.add(row.user_id);
-    const profiles=await loadCachedProfiles([...related]);
+    const [profiles,unreadByChannel]=await Promise.all([loadCachedProfiles([...related]),unreadByChannelPromise]);
     const friendIds=new Set<string>();
     for(const row of friendships||[])if(row.status==="accepted")friendIds.add(row.requester_id===uid?row.addressee_id:row.requester_id);
     const convMap:Record<string,string>={},activityByPerson:Record<string,number>={};
