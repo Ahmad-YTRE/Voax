@@ -1122,27 +1122,72 @@ function App({ session }: { session: Session }) {
   useEffect(() => { activeKeyRef.current = activeKey; activeRef.current = active; viewRef.current = view; peopleRef.current = people; nameRef.current = name; }, [activeKey, active, view, people, name]);
   useEffect(()=>{
     let cancelled=false;
-    (async()=>{try{let profile=await supabase.from("profiles").select("username,status,avatar_url,banner_url,public_id").eq("id",session.user.id).maybeSingle();if(profile.error)throw profile.error;if(!profile.data){const p=await supabase.from("profiles").upsert({id:session.user.id,username:String(session.user.user_metadata?.username||session.user.user_metadata?.global_name||session.user.user_metadata?.full_name||session.user.user_metadata?.name||session.user.user_metadata?.preferred_username||session.user.email?.split("@")[0]||"User").slice(0,32),status:"Online",avatar_url:session.user.user_metadata?.avatar_url||null},{onConflict:"id",ignoreDuplicates:true});if(p.error)throw p.error;profile=await supabase.from("profiles").select("username,status,avatar_url,public_id").eq("id",session.user.id).maybeSingle();if(profile.error)throw profile.error;}if(profile.data){const oauthName=String(session.user.user_metadata?.username||session.user.user_metadata?.global_name||session.user.user_metadata?.full_name||session.user.user_metadata?.name||session.user.user_metadata?.preferred_username||"").trim().replace(/\s+/g," ").slice(0,32);const resolvedName=profile.data.username==="User"&&oauthName?oauthName:(profile.data.username||oauthName||"User");setName(resolvedName);setStatus((profile.data.status||"Online") as PresenceStatus);let resolvedAvatar=profile.data.avatar_url||null;const providerAvatar=session.user.user_metadata?.avatar_url;if(!resolvedAvatar&&typeof providerAvatar==="string"&&providerAvatar.startsWith("https://")){const {error:avatarSyncError}=await supabase.from("profiles").update({avatar_url:providerAvatar,...(profile.data.username==="User"&&oauthName?{username:oauthName}:{})}).eq("id",session.user.id);if(!avatarSyncError)resolvedAvatar=providerAvatar;}else if(profile.data.username==="User"&&oauthName){await supabase.from("profiles").update({username:oauthName}).eq("id",session.user.id);}setAvatarUrl(resolvedAvatar);setProfileBannerUrl(profile.data.banner_url||null);}await loadWorkspace();}catch(error){if(!cancelled)notify("Couldn't load your Voax workspace: "+(error instanceof Error?error.message:"Please try again."));}finally{if(!cancelled)setWorkspaceLoading(false);}})();
+    const workspaceTask=loadWorkspace().catch(error=>{if(!cancelled)notify("Couldn't load your Voax workspace: "+(error instanceof Error?error.message:"Please try again."));});
+    const profileTask=(async()=>{try{let profile=await supabase.from("profiles").select("username,status,avatar_url,banner_url,public_id").eq("id",session.user.id).maybeSingle();if(profile.error)throw profile.error;if(!profile.data){const p=await supabase.from("profiles").upsert({id:session.user.id,username:String(session.user.user_metadata?.username||session.user.user_metadata?.global_name||session.user.user_metadata?.full_name||session.user.user_metadata?.name||session.user.user_metadata?.preferred_username||session.user.email?.split("@")[0]||"User").slice(0,32),status:"Online",avatar_url:session.user.user_metadata?.avatar_url||null},{onConflict:"id",ignoreDuplicates:true});if(p.error)throw p.error;profile=await supabase.from("profiles").select("username,status,avatar_url,public_id").eq("id",session.user.id).maybeSingle();if(profile.error)throw profile.error;}if(profile.data){const oauthName=String(session.user.user_metadata?.username||session.user.user_metadata?.global_name||session.user.user_metadata?.full_name||session.user.user_metadata?.name||session.user.user_metadata?.preferred_username||"").trim().replace(/\s+/g," ").slice(0,32);const resolvedName=profile.data.username==="User"&&oauthName?oauthName:(profile.data.username||oauthName||"User");setName(resolvedName);setStatus((profile.data.status||"Online") as PresenceStatus);let resolvedAvatar=profile.data.avatar_url||null;const providerAvatar=session.user.user_metadata?.avatar_url;if(!resolvedAvatar&&typeof providerAvatar==="string"&&providerAvatar.startsWith("https://")){const {error:avatarSyncError}=await supabase.from("profiles").update({avatar_url:providerAvatar,...(profile.data.username==="User"&&oauthName?{username:oauthName}:{})}).eq("id",session.user.id);if(!avatarSyncError)resolvedAvatar=providerAvatar;}else if(profile.data.username==="User"&&oauthName){await supabase.from("profiles").update({username:oauthName}).eq("id",session.user.id);}setAvatarUrl(resolvedAvatar);setProfileBannerUrl(profile.data.banner_url||null);}}catch(error){if(!cancelled)notify("Couldn't load your Voax workspace: "+(error instanceof Error?error.message:"Please try again."));}finally{if(!cancelled)setWorkspaceLoading(false);}})()
+    void Promise.all([workspaceTask,profileTask]).finally(()=>{if(!cancelled)setWorkspaceLoading(false);});;
     return()=>{cancelled=true;};
   },[session.user.id]);
   useEffect(()=>{
     const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?activeConversationId:null;
-    if(!channelId&&!conversationId||channelId&&activeChannel&&activeChannel.channelType!=="text"&&activeChannel.channelType!=="ticket"){setMessagesLoading(false);return;}let cancelled=false;setMessagesLoading(true);
+    if(!channelId&&!conversationId||channelId&&activeChannel&&activeChannel.channelType!=="text"&&activeChannel.channelType!=="ticket"){setMessagesLoading(false);return;}
+    let cancelled=false;
+    const cachedMessages=messages[activeKey]||messages[active]||[];
+    // Keep cached messages visible while refreshing in the background.
+    setMessagesLoading(cachedMessages.length===0);
     const loadMessages=async()=>{
-      const result=channelId?await supabase.from("messages").select("id,author_id,body,created_at,edited_at,reply_to,channel_id,conversation_id,attachments,bridge_metadata,bridge_source").eq("channel_id",channelId).order("created_at",{ascending:false}).limit(200):await supabase.from("messages").select("id,author_id,body,created_at,edited_at,reply_to,channel_id,conversation_id,attachments,bridge_metadata,bridge_source").eq("conversation_id",conversationId!).order("created_at",{ascending:false}).limit(200);
-      if(cancelled)return;if(result.error){notify("Couldn't load messages: "+result.error.message);setMessagesLoading(false);return;}
+      const result=channelId
+        ?await supabase.from("messages").select("id,author_id,body,created_at,edited_at,reply_to,channel_id,conversation_id,attachments,bridge_metadata,bridge_source").eq("channel_id",channelId).order("created_at",{ascending:false}).limit(200)
+        :await supabase.from("messages").select("id,author_id,body,created_at,edited_at,reply_to,channel_id,conversation_id,attachments,bridge_metadata,bridge_source").eq("conversation_id",conversationId!).order("created_at",{ascending:false}).limit(200);
+      if(cancelled)return;
+      if(result.error){notify("Couldn't load messages: "+result.error.message);setMessagesLoading(false);return;}
       const rows=[...(result.data||[])].reverse(),authorIds=[...new Set(rows.map(row=>row.author_id))];
-      const names=new Map<string,string>(peopleRef.current.map(person=>[person.id,person.name] as const));names.set(session.user.id,nameRef.current);
-      const missingAuthorIds=authorIds.filter(id=>!names.has(id));
-      if(missingAuthorIds.length){const profiles=await loadCachedProfiles(missingAuthorIds);for(const profile of profiles)names.set(profile.id,profile.username||"User");}
+      const names=new Map<string,string>(peopleRef.current.map(person=>[person.id,person.name] as const));
+      names.set(session.user.id,nameRef.current);
       const byId=new Map(rows.map(row=>[row.id,row]));
-      const reactionMap=new Map<string,Reaction[]>();
-      if(rows.length){const rr=await supabase.from("message_reactions").select("message_id,user_id,emoji").in("message_id",rows.map(row=>row.id));if(rr.error){notify("Unable to load reactions: "+rr.error.message);setMessagesLoading(false);return;}for(const r of rr.data||[]){const list=reactionMap.get(r.message_id)||[];const existing=list.find(x=>x.emoji===r.emoji);if(existing){existing.count++;if(r.user_id===session.user.id)existing.reacted=true;}else list.push({emoji:r.emoji,count:1,reacted:r.user_id===session.user.id});reactionMap.set(r.message_id,list);}}
-      // Sign all attachment URLs in one Storage request instead of one request per message.
-      const signedAttachments=await signMessageAttachments(rows.flatMap(row=>Array.isArray(row.attachments)?row.attachments as Omit<Attachment,"url">[]:[]));
-      const attachmentUrls=new Map(signedAttachments.map(attachment=>[attachment.path,attachment.url] as const));
-      const mapped:Message[]=rows.map(row=>{const reply=row.reply_to?byId.get(row.reply_to):null;const attachments=Array.isArray(row.attachments)?(row.attachments as (Omit<Attachment,"url">&{url?:string})[]).map(attachment=>({...attachment,url:attachment.url||attachmentUrls.get(attachment.path)})):[];const bridge=row.bridge_metadata as any;const external=bridge?.platform==="discord";const externalAuthor=bridge?.author||{};return{id:row.id,author:external?String(externalAuthor.username||"Discord user")+" [Discord]":names.get(row.author_id)||(row.author_id===session.user.id?nameRef.current:"Member"),text:row.body,time:formatClock(new Date(row.created_at), clockFormat),timestamp:row.created_at,...(row.edited_at?{editedAt:row.edited_at}:{}),own:!external&&row.author_id===session.user.id,...(external?{avatarUrl:externalAuthor.avatar_url||null,platform:"discord" as const}:{}),...(external&&Array.isArray(bridge?.embeds)&&bridge.embeds.length?{embeds:bridge.embeds as DiscordEmbed[]}:{}),...(reply?{replyTo:{author:names.get(reply.author_id)||"Member",text:reply.body}}:row.reply_to?{replyTo:{author:"Original message",text:"This message is no longer available."}}:external&&bridge?.reply_external_id?{replyTo:{author:"Discord message",text:"Original message preview is unavailable."}}:{}),...(reactionMap.has(row.id)?{reactions:reactionMap.get(row.id)}:{}),...(attachments.length?{attachments}:{})};});
-      setMessages(old=>({...old,[activeKey]:mapped,[active]:mapped}));setMessagesLoading(false);
+      const mapRows=(reactionMap:Map<string,Reaction[]>,attachmentUrls:Map<string,string>):Message[]=>rows.map(row=>{
+        const reply=row.reply_to?byId.get(row.reply_to):null;
+        const attachments=Array.isArray(row.attachments)?(row.attachments as (Omit<Attachment,"url">&{url?:string})[]).map(attachment=>({...attachment,url:attachment.url||attachmentUrls.get(attachment.path)})):[];
+        const bridge=row.bridge_metadata as any,external=bridge?.platform==="discord",externalAuthor=bridge?.author||{};
+        return{id:row.id,author:external?String(externalAuthor.username||"Discord user")+" [Discord]":names.get(row.author_id)||(row.author_id===session.user.id?nameRef.current:"Member"),text:row.body,time:formatClock(new Date(row.created_at),clockFormat),timestamp:row.created_at,...(row.edited_at?{editedAt:row.edited_at}:{}),own:!external&&row.author_id===session.user.id,...(external?{avatarUrl:externalAuthor.avatar_url||null,platform:"discord" as const}:{}),...(external&&Array.isArray(bridge?.embeds)&&bridge.embeds.length?{embeds:bridge.embeds as DiscordEmbed[]}:{}),...(reply?{replyTo:{author:names.get(reply.author_id)||"Member",text:reply.body}}:row.reply_to?{replyTo:{author:"Original message",text:"This message is no longer available."}}:external&&bridge?.reply_external_id?{replyTo:{author:"Discord message",text:"Original message preview is unavailable."}}:{}),...(reactionMap.has(row.id)?{reactions:reactionMap.get(row.id)}:{}),...(attachments.length?{attachments}:{})};
+      });
+      // Render the message bodies immediately; profile, reaction and storage work
+      // must not hold the conversation hostage.
+      const emptyReactions=new Map<string,Reaction[]>(),emptyAttachments=new Map<string,string>();
+      const baseMessages=mapRows(emptyReactions,emptyAttachments);
+      setMessages(old=>({...old,[activeKey]:baseMessages,[active]:baseMessages}));
+      setMessagesLoading(false);
+      const enrichmentTasks:Promise<unknown>[]=[];
+      if(authorIds.some(id=>!names.has(id))){
+        enrichmentTasks.push(loadCachedProfiles(authorIds.filter(id=>!names.has(id))).then(profiles=>{for(const profile of profiles)names.set(profile.id,profile.username||"User");}));
+      }
+      if(rows.length){
+        enrichmentTasks.push((async()=>{
+          const rr=await supabase.from("message_reactions").select("message_id,user_id,emoji").in("message_id",rows.map(row=>row.id));
+          if(rr.error)return;
+          const reactionMap=new Map<string,Reaction[]>();
+          for(const reaction of rr.data||[]){
+            const list=reactionMap.get(reaction.message_id)||[];
+            const existing=list.find(item=>item.emoji===reaction.emoji);
+            if(existing){existing.count++;if(reaction.user_id===session.user.id)existing.reacted=true;}
+            else list.push({emoji:reaction.emoji,count:1,reacted:reaction.user_id===session.user.id});
+            reactionMap.set(reaction.message_id,list);
+          }
+          if(cancelled)return;
+          setMessages(old=>({...old,[activeKey]:(old[activeKey]||[]).map(message=>({...message,...(reactionMap.has(message.id)?{reactions:reactionMap.get(message.id)}:{})})),[active]:(old[active]||[]).map(message=>({...message,...(reactionMap.has(message.id)?{reactions:reactionMap.get(message.id)}:{})}))}));
+        })());
+        enrichmentTasks.push((async()=>{
+          const signed=await signMessageAttachments(rows.flatMap(row=>Array.isArray(row.attachments)?row.attachments as Omit<Attachment,"url">[]:[]));
+          const attachmentUrls=new Map(signed.map(attachment=>[attachment.path,attachment.url] as const));
+          if(cancelled)return;
+          setMessages(old=>({...old,[activeKey]:(old[activeKey]||[]).map(message=>{const row=byId.get(message.id);if(!row||!Array.isArray(row.attachments))return message;return{...message,attachments:(row.attachments as (Omit<Attachment,"url">&{url?:string})[]).map(attachment=>({...attachment,url:attachment.url||attachmentUrls.get(attachment.path)}))};}),[active]:(old[active]||[]).map(message=>{const row=byId.get(message.id);if(!row||!Array.isArray(row.attachments))return message;return{...message,attachments:(row.attachments as (Omit<Attachment,"url">&{url?:string})[]).map(attachment=>({...attachment,url:attachment.url||attachmentUrls.get(attachment.path)}))};})}));
+        })());
+      }
+      if(enrichmentTasks.length){
+        await Promise.allSettled(enrichmentTasks);
+        if(cancelled)return;
+        const enriched=mapRows(new Map<string,Reaction[]>(),new Map<string,string>());
+        setMessages(old=>({...old,[activeKey]:(old[activeKey]||[]).map(message=>{const next=enriched.find(item=>item.id===message.id);return next?{...message,author:next.author,...(next.replyTo?{replyTo:next.replyTo}:{})}:message;}),[active]:(old[active]||[]).map(message=>{const next=enriched.find(item=>item.id===message.id);return next?{...message,author:next.author,...(next.replyTo?{replyTo:next.replyTo}:{})}:message;})}));
+      }
     };
     void loadMessages().catch(error=>{if(!cancelled){notify("Couldn't load messages: "+(error instanceof Error?error.message:"Please try again."));setMessagesLoading(false);}});
     return()=>{cancelled=true;};
@@ -1564,10 +1609,11 @@ function App({ session }: { session: Session }) {
   }
   async function loadWorkspace() {
     const uid=session.user.id;
-    const [staffResult,blockResult,banResult]=await Promise.all([
+    const [staffResult,blockResult,banResult,membershipResult]=await Promise.all([
       supabase.from("voax_staff_roles").select("role").eq("user_id",uid).maybeSingle(),
       supabase.from("voax_account_blocks").select("blocked_id").eq("blocker_id",uid),
-      supabase.from("voax_account_bans").select("id,reason,duration,expires_at").eq("user_id",uid).eq("status","active").order("created_at",{ascending:false}).limit(1).maybeSingle()
+      supabase.from("voax_account_bans").select("id,reason,duration,expires_at").eq("user_id",uid).eq("status","active").order("created_at",{ascending:false}).limit(1).maybeSingle(),
+      supabase.from("server_members").select("server_id").eq("user_id",uid)
     ]);
     if(!staffResult.error)setStaffRole((staffResult.data?.role||null) as "owner"|"admin"|"moderator"|null);
     if(!blockResult.error)setBlockedUserIds(new Set((blockResult.data||[]).map(row=>row.blocked_id)));
@@ -1576,9 +1622,8 @@ function App({ session }: { session: Session }) {
       setAccountBan(currentBan);
       if(currentBan){const appeal=await supabase.from("voax_ban_appeals").select("id").eq("ban_id",currentBan.id).maybeSingle();setAppealSubmitted(Boolean(appeal.data));}
     }
-    const {data:ownMemberships,error:membershipError}=await supabase.from("server_members").select("server_id").eq("user_id",uid);
-    if(membershipError)throw membershipError;
-    const serverIds=[...new Set((ownMemberships||[]).map(row=>row.server_id))];
+    if(membershipResult.error)throw membershipResult.error;
+    const serverIds=[...new Set((membershipResult.data||[]).map(row=>row.server_id))];
     setPresenceServerIds([]);
     let serverRows:any[]=[],channelRows:any[]=[],serverMemberRows:any[]=[],categoryRows:any[]=[];
     if(serverIds.length){
