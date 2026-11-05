@@ -124,7 +124,7 @@ export default async function handler(req:any,res:any){
     .select("id,channel_link_id,status,voax_message_id,discord_message_id,channel_link:discord_channel_links!inner(id,voax_server_id,discord_welcome_sticker_id,voax_welcome_sticker_url)")
     .eq("id",eventId).maybeSingle();
    if(eventError)throw eventError;
-   if(!event||event.status!=="sent"||!event.voax_message_id||!event.discord_message_id)return reply(res,404,{error:"This welcome message is no longer available."});
+   if(!event||!event.voax_message_id||!event.discord_message_id)return reply(res,404,{error:"This welcome message is no longer available."});
    const link=Array.isArray(event.channel_link)?event.channel_link[0]:event.channel_link;
    if(!link||!link.discord_welcome_sticker_id||!link.voax_welcome_sticker_url)return reply(res,400,{error:"Welcome stickers have not been configured for both platforms."});
    const {data:member,error:memberError}=await admin.from("server_members").select("user_id").eq("server_id",link.voax_server_id).eq("user_id",user.id).maybeSingle();
