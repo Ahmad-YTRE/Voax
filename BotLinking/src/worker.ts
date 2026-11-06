@@ -27,17 +27,26 @@ function describeError(error: unknown) {
 
 export function startOutboxWorker(client: Client) {
   let running = false;
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let idlePollMs = config.pollMs;
+  const maxIdlePollMs = Math.max(config.pollMs, 5000);
+  const schedule = (delay: number) => {
+    if (!stopped) timer = setTimeout(() => void tick(), delay);
+  };
   const resolve = async (id: string): Promise<TextBasedChannel | null> => {
     const channel = await client.channels.fetch(id).catch(() => null);
     return channel && channel.isTextBased() ? channel : null;
   };
   const tick = async () => {
-    if (running) return;
+    if (running || stopped) return;
     running = true;
+    let nextDelay = idlePollMs;
     try {
       const { data: jobs, error } = await db.rpc("claim_discord_sync_jobs", { p_limit: config.batchSize });
       if (error) throw error;
-      for (const job of (jobs || []) as OutboxJob[]) {
+      const claimedJobs = (jobs || []) as OutboxJob[];
+      for (const job of claimedJobs) {
         try {
           await processOutboxJob(job, resolve);
           await db.from("discord_sync_outbox").update({
@@ -63,17 +72,24 @@ export function startOutboxWorker(client: Client) {
           });
         }
       }
+      idlePollMs = claimedJobs.length ? config.pollMs : Math.min(maxIdlePollMs, Math.max(config.pollMs, idlePollMs * 2));
+      nextDelay = claimedJobs.length ? config.pollMs : idlePollMs;
     } catch (error) {
       const failure = describeError(error);
       log("error", "outbox_poll_failed", {
         error: failure.message, errorCode: failure.code,
         errorDetails: failure.details, errorHint: failure.hint
       });
+      idlePollMs = Math.min(maxIdlePollMs, Math.max(config.pollMs, idlePollMs * 2));
+      nextDelay = idlePollMs;
     } finally {
       running = false;
+      schedule(nextDelay);
     }
   };
-  const timer = setInterval(() => void tick(), config.pollMs);
   void tick();
-  return () => clearInterval(timer);
+  return () => {
+    stopped = true;
+    if (timer) clearTimeout(timer);
+  };
 }
