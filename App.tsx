@@ -483,7 +483,7 @@ function Landing({ openApp }: { openApp: () => void }) {
         <article><div className="feature-icon"><Icon name="users" size={24} /></div><h3>Servers & Communities</h3><p>Create your own space or join communities built around the things you love.</p></article>
         <article><div className="feature-icon"><Icon name="hash" size={24} /></div><h3>Channels</h3><p>Keep conversations organized by topic, so everyone can find the right place to talk.</p></article>
         <article><div className="feature-icon"><Icon name="message" size={24} /></div><h3>Direct Messages</h3><p>Take the conversation private and catch up with friends one-on-one.</p></article>
-        <article><div className="feature-icon"><Icon name="user-plus" size={24} /></div><h3>Friends</h3><p>Connect with people, build friendships, and stay in touch.</p></article>
+        <article><div className="feature-icon"><Icon name="user" size={24} /></div><h3>Friends</h3><p>Connect with people, build friendships, and stay in touch.</p></article>
         <article><div className="feature-icon"><Icon name="shield" size={24} /></div><h3>Roles & Permissions</h3><p>Give your community structure and the tools to manage its spaces.</p></article>
         <article><div className="feature-icon"><Icon name="bell" size={24} /></div><h3>Notifications</h3><p>Keep up with conversations and activity that matter to you.</p></article>
       </div>
