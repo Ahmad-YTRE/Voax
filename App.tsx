@@ -100,11 +100,11 @@ function LottieSticker({ url, name }: { url: string; name: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    let animation: { destroy: () => void; addEventListener: (event: string, callback: () => void) => void } | undefined;
+    let destroyAnimation: (() => void) | undefined;
     setFailed(false);
     import("lottie-web").then(({ default: lottie }) => {
       if (cancelled || !containerRef.current) return;
-      animation = lottie.loadAnimation({
+      const animationItem = lottie.loadAnimation({
         container: containerRef.current,
         renderer: "svg",
         loop: true,
@@ -112,11 +112,12 @@ function LottieSticker({ url, name }: { url: string; name: string }) {
         path: url,
         rendererSettings: { preserveAspectRatio: "xMidYMid meet" }
       });
-      animation.addEventListener("data_failed", () => setFailed(true));
+      destroyAnimation = () => animationItem.destroy();
+      animationItem.addEventListener("data_failed", () => setFailed(true));
     }).catch(() => setFailed(true));
     return () => {
       cancelled = true;
-      animation?.destroy();
+      destroyAnimation?.();
     };
   }, [url]);
 
