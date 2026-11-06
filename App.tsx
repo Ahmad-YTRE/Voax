@@ -467,10 +467,34 @@ function SettingsSkeleton() {
 
 function Landing({ openApp }: { openApp: () => void }) {
   return <div className="landing">
-    <header className="landing-header"><a className="wordmark" href="/"><Logo size={32} />Voax</a><nav><a href="#features">Features</a><a href="#community">Community</a><a href="/docs">User guide</a></nav></header>
-    <section className="hero"><Logo size={96} className="is-hero" /><h1>Chat. Chill.<br/><span>Have Fun.</span></h1><p>A familiar, friendly place to chat with your friends, organize your teams, and share your opinions.</p><div className="hero-actions"><button className="btn primary large" onClick={openApp}>Open Voax <Icon name="arrowRight" size={16} /></button><a className="btn secondary large" href="#features">Explore features</a></div><div className="hero-note"><Icon name="sparkles" size={15} /> A friendly space for your people</div></section>
-    <section className="landing-features" id="features"><div className="section-kicker">MADE FOR YOUR CREW</div><h2>Everything your squad needs.</h2><div className="feature-grid"><article><div className="feature-icon"><Icon name="message" size={24} /></div><h3>Channels & DMs</h3><p>Keep server conversations organized and jump into private chats whenever you need.</p></article><article><div className="feature-icon"><Icon name="pickaxe" size={24} /></div><h3>Built for builders</h3><p>Talk about builds, share ideas, and plan your next adventure with your crew.</p></article><article><div className="feature-icon"><Icon name="zap" size={24} /></div><h3>Lightweight by design</h3><p>A clean, responsive interface that works on desktop, tablet, and mobile.</p></article></div></section>
-    <footer className="landing-footer" id="community"><span className="wordmark"><Logo size={20} />Voax</span><span>© 2026 Voax · An independent community site, not affiliated with Mojang and Discord.</span></footer>
+    <header className="landing-header"><a className="wordmark" href="/"><Logo size={32} />Voax</a><nav><a href="#features">Features</a><a href="#community">Community</a><a href="/docs">User guide</a></nav><button className="btn primary small" onClick={openApp}>Get Started</button></header>
+    <section className="hero">
+      <div className="eyebrow"><span className="pulse" /> YOUR COMMUNITY STARTS HERE</div>
+      <Logo size={82} className="is-hero" />
+      <h1>Your people. Your place.<br/><span>Your Voax.</span></h1>
+      <p>Find your community, start conversations, and bring your friends together. Voax is where communities connect and conversations come alive.</p>
+      <div className="hero-actions"><button className="btn primary large" onClick={openApp}>Get Started <Icon name="arrowRight" size={16} /></button><a className="btn secondary large" href="#features">Explore Voax</a></div>
+      <div className="hero-note"><Icon name="sparkles" size={15} /> A place to connect, chat, and build communities</div>
+    </section>
+    <section className="landing-features" id="features">
+      <div className="section-kicker">MADE FOR YOUR COMMUNITY</div>
+      <h2>Everything you need to connect.</h2>
+      <div className="feature-grid">
+        <article><div className="feature-icon"><Icon name="users" size={24} /></div><h3>Servers & Communities</h3><p>Create your own space or join communities built around the things you love.</p></article>
+        <article><div className="feature-icon"><Icon name="hash" size={24} /></div><h3>Channels</h3><p>Keep conversations organized by topic, so everyone can find the right place to talk.</p></article>
+        <article><div className="feature-icon"><Icon name="message" size={24} /></div><h3>Direct Messages</h3><p>Take the conversation private and catch up with friends one-on-one.</p></article>
+        <article><div className="feature-icon"><Icon name="user-plus" size={24} /></div><h3>Friends</h3><p>Connect with people, build friendships, and stay in touch.</p></article>
+        <article><div className="feature-icon"><Icon name="shield" size={24} /></div><h3>Roles & Permissions</h3><p>Give your community structure and the tools to manage its spaces.</p></article>
+        <article><div className="feature-icon"><Icon name="bell" size={24} /></div><h3>Notifications</h3><p>Keep up with conversations and activity that matter to you.</p></article>
+      </div>
+    </section>
+    <section className="landing-community" id="community">
+      <div className="section-kicker">BUILT AROUND YOUR PEOPLE</div>
+      <h2>More than just a chat.</h2>
+      <p>Build your own space, invite your friends, and make every conversation count. Whether you're joining a community or starting one, there's room for your people on Voax.</p>
+      <div className="hero-actions"><button className="btn primary large" onClick={openApp}>Your community is waiting <Icon name="arrowRight" size={16} /></button></div>
+    </section>
+    <footer className="landing-footer"><span className="wordmark"><Logo size={20} />Voax</span><span>© 2026 Voax · An independent community platform.</span></footer>
   </div>;
 }
 
