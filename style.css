@@ -5274,3 +5274,12 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .message-attachment-sticker-image .message-media-thumb{width:min(190px,100%);height:190px;background:transparent;cursor:zoom-in;}
 .message-attachment-sticker-image .message-media-thumb img{width:100%;height:100%;max-width:100%;max-height:none;object-fit:contain;}
 @media(max-width:560px){.message-attachment-sticker-image{max-width:160px;}.message-attachment-sticker-image .message-media-thumb{width:160px;height:160px;}}
+
+
+/* Homepage community call-to-action */
+.landing-community{padding:100px 22px 108px;text-align:center;border-top:1px solid #ffffff0b;background:radial-gradient(ellipse at 50% 100%,#123044 0,transparent 62%),#0b0e14}
+.landing-community h2{margin:14px 0 15px;color:#f6f8ff;font-size:clamp(30px,4vw,44px);letter-spacing:-1.5px}
+.landing-community>p{max-width:650px;margin:0 auto;color:#9aa8bc;font-size:14px;line-height:1.85}
+.landing-community .hero-actions{justify-content:center;margin-top:27px}
+.landing-header>.btn{white-space:nowrap}
+@media(max-width:650px){.landing-community{padding:75px 20px 82px}.landing-community>p{font-size:13px}.landing-header>.btn{padding:9px 11px}}
