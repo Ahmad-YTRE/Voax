@@ -1,0 +1,1 @@
+revoke all on function public.enqueue_voax_member_welcome() from public, anon, authenticated;

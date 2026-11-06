@@ -3,73 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080b12">
+  <meta name="theme-color" content="#090b10">
   <meta name="robots" content="noindex">
   <title>404 — Page not found | Voax</title>
   <style>
-    :root{color-scheme:dark;--bg:#080b12;--panel:#101722;--text:#f4f7fb;--muted:#98a6ba;--line:rgba(211,226,255,.11);--cyan:#5eead4;--blue:#7c9cff}
     *{box-sizing:border-box}
-    html{min-height:100%;background:var(--bg)}
-    body{margin:0;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;overflow-x:hidden;background:radial-gradient(ellipse at 50% 28%,rgba(48,105,129,.17),transparent 42%),radial-gradient(ellipse at 80% 90%,rgba(90,77,176,.12),transparent 38%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
-    a{color:inherit}
-    .topbar{width:min(1120px,calc(100% - 48px));height:82px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
-    .brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-size:21px;font-weight:850;letter-spacing:-.7px}
-    .brand-mark{width:34px;height:34px;display:grid;place-items:center;border:1px solid rgba(94,234,212,.25);border-radius:11px;background:linear-gradient(145deg,rgba(94,234,212,.16),rgba(124,156,255,.13));color:var(--cyan);box-shadow:inset 0 1px rgba(255,255,255,.08)}
-    .brand-mark svg{width:19px;height:19px}
-    .status{display:inline-flex;align-items:center;gap:9px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;color:#aab7ca;font-size:11px;font-weight:650;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,.025)}
-    .status-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px rgba(94,234,212,.65)}
-    main{flex:1;display:grid;place-items:center;padding:64px 24px 76px}
-    .content{width:min(100%,680px);position:relative;text-align:center}
-    .orbit{position:absolute;z-index:0;width:min(76vw,460px);aspect-ratio:1;left:50%;top:43%;transform:translate(-50%,-50%);border:1px solid rgba(124,156,255,.09);border-radius:50%;pointer-events:none}
-    .orbit:before,.orbit:after{content:"";position:absolute;border:1px solid rgba(94,234,212,.09);border-radius:50%;inset:12%}
-    .orbit:after{inset:25%;border-color:rgba(124,156,255,.1)}
-    .error-art{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;margin:0 auto 28px}
-    .error-number{font-size:clamp(112px,22vw,190px);font-weight:900;line-height:.88;letter-spacing:-.095em;padding-right:.095em;color:transparent;background:linear-gradient(155deg,#fff 8%,#c7d7e8 42%,#7e91b2 75%,#5eead4 110%);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 18px 45px rgba(94,234,212,.09))}
-    .float-chip{position:absolute;right:-31px;bottom:10px;display:grid;place-items:center;width:52px;height:52px;border:1px solid rgba(94,234,212,.25);border-radius:16px;background:linear-gradient(145deg,#15252b,#111927);color:var(--cyan);box-shadow:0 12px 36px #0007;transform:rotate(8deg)}
-    .float-chip svg{width:24px;height:24px}
-    .eyebrow{position:relative;z-index:1;display:inline-flex;align-items:center;gap:8px;margin-bottom:17px;color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:.19em;text-transform:uppercase}
-    h1{position:relative;z-index:1;margin:0;color:var(--text);font-size:clamp(30px,5vw,46px);line-height:1.12;letter-spacing:-.055em;font-weight:800}
-    .description{position:relative;z-index:1;max-width:460px;margin:18px auto 0;color:var(--muted);font-size:15px;line-height:1.85}
-    .actions{position:relative;z-index:1;display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:30px}
-    .button{min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:0 19px;border:1px solid var(--line);border-radius:12px;text-decoration:none;font-size:13px;font-weight:750;transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease}
-    .button svg{width:16px;height:16px}
-    .button-primary{background:var(--cyan);border-color:var(--cyan);color:#071311;box-shadow:0 8px 28px rgba(94,234,212,.13)}
-    .button-primary:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(94,234,212,.22);background:#8af4e3}
-    .button-secondary{background:rgba(255,255,255,.035);color:#d7e0ee}
-    .button-secondary:hover{transform:translateY(-2px);background:rgba(255,255,255,.07);border-color:rgba(211,226,255,.22)}
-    .hint{position:relative;z-index:1;margin-top:32px;color:#64738a;font-size:12px}
-    .hint kbd{padding:3px 7px;border:1px solid var(--line);border-radius:5px;background:rgba(255,255,255,.035);color:#aab7ca;font:inherit}
-    footer{width:min(1120px,calc(100% - 48px));margin:0 auto;padding:21px 0 25px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid var(--line);color:#65738a;font-size:11px}
-    footer a{text-decoration:none;color:#a3b1c4}footer a:hover{color:var(--cyan)}
-    @media(max-width:520px){.topbar{width:calc(100% - 36px);height:70px}.brand{font-size:19px}.status{font-size:9px;padding:7px 9px}main{padding:48px 22px 56px}.float-chip{right:-13px;width:43px;height:43px;border-radius:13px}.description{font-size:14px}.actions{flex-direction:column;align-items:stretch;max-width:300px;margin:27px auto 0}.button{width:100%}.hint{line-height:1.8}footer{width:calc(100% - 36px);align-items:flex-start;flex-direction:column;gap:8px}}
-    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#090b10;color:#f1f3f7;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    main{width:min(100%,420px);text-align:center}
+    .brand{display:inline-block;margin-bottom:48px;color:#f1f3f7;font-size:22px;font-weight:800;letter-spacing:-.7px;text-decoration:none}
+    .code{margin:0;color:#7d8797;font-size:14px;font-weight:700;letter-spacing:.12em}
+    h1{margin:12px 0 10px;font-size:30px;line-height:1.2;letter-spacing:-.8px}
+    p{margin:0;color:#9aa3b2;font-size:14px;line-height:1.6}
+    .actions{display:flex;justify-content:center;margin-top:26px}
+    .button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 18px;border-radius:8px;background:#5eead4;color:#071311;font-size:13px;font-weight:700;text-decoration:none;transition:background .15s}
+    .button:hover{background:#83f2e1}
+    .home{display:inline-block;margin-top:18px;color:#aeb7c5;font-size:12px;text-decoration:none}
+    .home:hover{color:#fff}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important}}
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="/" aria-label="Voax home">
-      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4.5 7.5 9 17h3l4.5-9.5M14.5 7.5H19.5L15 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      <span>Voax</span>
-    </a>
-    <div class="status"><span class="status-dot"></span> Lost in the void</div>
-  </header>
   <main>
-    <section class="content" aria-labelledby="page-title">
-      <div class="orbit" aria-hidden="true"></div>
-      <div class="error-art" aria-hidden="true">
-        <div class="error-number">404</div>
-        <div class="float-chip"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5 14.2 9.8 20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.2L12 3.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m19 3 .7 2.3L22 6l-2.3.7L19 9l-.7-2.3L16 6l2.3-.7L19 3Z" fill="currentColor"/></svg></div>
-      </div>
-      <div class="eyebrow"><span class="status-dot"></span> Wrong turn, explorer</div>
-      <h1 id="page-title">This page doesn’t exist.</h1>
-      <p class="description">Looks like you’ve wandered beyond the map. The link may be outdated, or the page may have moved to another corner of Voax!</p>
-      <div class="actions">
-        <a class="button button-primary" href="/">Back to home <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        <a class="button button-secondary" href="/app">Open Voax <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4h6v6m-.5-5.5L11 13m-2-7H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-      </div>
-      <p class="hint">If you typed the address, double-check the spelling and try again...</p>
-    </section>
+    <a class="brand" href="/" aria-label="Voax home">Voax</a>
+    <p class="code">404</p>
+    <h1>Page not found</h1>
+    <p>The page you're looking for doesn't exist or may have moved.</p>
+    <div class="actions">
+      <a class="button" href="/app">Back to Voax</a>
+    </div>
+    <a class="home" href="/">Go to homepage</a>
   </main>
-  <footer><span>© 2026 Voax. Find your people.</span><a href="/">Return to safety ↗</a></footer>
 </body>
 </html>

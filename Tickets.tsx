@@ -2,6 +2,17 @@ import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
 import { Icon } from "./icons.filename";
 
+function TicketPanelSkeleton() {
+  return <section className="ticket-panel-view ticket-skeleton-view" role="status" aria-label="Loading ticket panel" aria-busy="true">
+    <div className="ticket-panel-card ticket-panel-skeleton">
+      <span className="skeleton-bar ticket-skeleton-eyebrow"/>
+      <div className="ticket-panel-heading"><span className="skeleton-bar ticket-skeleton-art"/><div className="ticket-skeleton-heading"><span className="skeleton-bar ticket-skeleton-title"/><span className="skeleton-bar ticket-skeleton-copy"/></div></div>
+      <span className="skeleton-bar ticket-skeleton-button"/>
+      <div className="ticket-panel-categories"><div className="ticket-panel-section-title"><span className="skeleton-bar ticket-skeleton-label"/><span className="skeleton-bar ticket-skeleton-label short"/></div><div className="ticket-category-grid">{Array.from({length:4},(_,i)=><div className="ticket-category-card ticket-category-skeleton" key={i}><span className="skeleton-bar ticket-skeleton-category-icon"/><span><span className="skeleton-bar ticket-skeleton-category-title"/><span className="skeleton-bar ticket-skeleton-category-copy"/></span></div>)}</div></div>
+    </div>
+  </section>;
+}
+
 type TicketRole = { id: string; name: string; color: string };
 type TicketMember = { id: string; name: string; avatarUrl?: string | null };
 type TicketPanel = {
@@ -138,7 +149,7 @@ export function TicketPanelView({
     onNotify("Ticket panel settings saved.");
   };
 
-  if (loading) return <section className="ticket-panel-view"><div className="ticket-loading">Loading ticket panel…</div></section>;
+  if (loading) return <TicketPanelSkeleton/>;
 
   return <section className="ticket-panel-view">
     <div className="ticket-panel-card" style={{ "--ticket-panel-accent": panel.embed_color } as React.CSSProperties}>

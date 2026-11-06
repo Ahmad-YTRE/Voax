@@ -38,7 +38,25 @@
       ]
     },
     {
+      "source": "/mod",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
       "source": "/admin",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/mod/:path*",
       "headers": [
         {
           "key": "X-Robots-Tag",
@@ -111,6 +129,14 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/mod/:path*",
+      "destination": "/"
+    },
+    {
+      "source": "/mod",
+      "destination": "/"
+    },
     {
       "source": "/admin/:path*",
       "destination": "/"

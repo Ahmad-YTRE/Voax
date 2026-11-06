@@ -1,6 +1,6 @@
 # Voax Linking Bot (BotLinking)
 
-**BotLinking is the one and only bot runtime folder.** It contains the complete Voax Linking Gateway worker and the CommonJS entry point required by bot-hosting.net. The website/API and this persistent bot process deploy independently.
+**BotLinking is the one and only bot runtime folder.** It contains the complete Voax Linking Gateway worker and the Node.js entry point required by bot-hosting.net. This is the single runtime for two-way message synchronization, member-join welcome events, welcome cards, and welcome sticker actions. The website/API and this persistent bot process deploy independently.
 
 ## bot-hosting.net setup
 
@@ -12,7 +12,7 @@
 6. Enable **Message Content Intent** in the Discord Developer Portal.
 7. Start exactly one worker instance initially.
 
-The root `index.js` is a small CommonJS launcher for hosting panels. It starts the shared TypeScript runtime in `src/`; there is no second, separately maintained JavaScript bot implementation.
+The root `index.js` is a small Node.js ES-module launcher for hosting panels. It starts the shared TypeScript runtime in `src/`; there is no second, separately maintained JavaScript bot implementation.
 
 ## Required environment variables
 
@@ -24,7 +24,8 @@ Optional queue settings:
 
 - `OUTBOX_POLL_MS` — queue polling interval (default 1200 ms).
 - `OUTBOX_BATCH_SIZE` — jobs claimed per poll (default 10).
-- `OUTBOX_MAX_ATTEMPTS` — attempts before a job is marked dead (default 12).
+- `OUTBOX_MAX_ATTEMPTS` — attempts before a message-sync job is marked dead (default 12).
+- `POLL_INTERVAL_MS` — welcome queue polling interval (default 1500 ms).
 - `VOAX_PUBLIC_URL` — public Voax URL (default https://voax.app).
 - `LOG_LEVEL` — debug, info, warn, or error.
 
@@ -32,9 +33,9 @@ Use `.env.example` as a reference for local development. Never upload a real `.e
 
 ## Discord permissions and intents
 
-Enable **Message Content Intent**. The bot uses Guilds, Guild Messages, and Message Content gateway intents; it does not require Presence or Server Members intents.
+Enable **Message Content Intent**. The unified bot uses Guilds, Guild Members, Guild Messages, and Message Content gateway intents. Enable Server Members Intent and Message Content Intent in the Discord Developer Portal.
 
-The install link requests no guild-wide permissions. Grant the bot these permissions only in channels that should be linked: View Channel, Send Messages, Read Message History, Embed Links, Attach Files, and Manage Webhooks. For strict isolation, deny the bot role View Channel in unlinked channels where `@everyone` otherwise grants visibility. Voax never changes Discord channel permissions automatically.
+The install link requests no guild-wide permissions. Grant the bot these permissions only in channels that should be linked: View Channel, Send Messages, Read Message History, Embed Links, Attach Files, Manage Webhooks, and Use External Stickers when using Discord welcome stickers. For strict isolation, deny the bot role View Channel in unlinked channels where `@everyone` otherwise grants visibility. Voax never changes Discord channel permissions automatically.
 
 ## Development and checks
 
@@ -72,4 +73,4 @@ Set the redirect URI to `https://YOUR_VOAX_DOMAIN/api/linking/oauth?action=callb
 
 ## One worker only
 
-Both bot-hosting.net and Docker use this same `BotLinking` runtime and the same Supabase queue. Do not run multiple copies unless you intentionally want to scale workers and have verified your queue/ordering behavior.
+Both message synchronization and welcome-event processing now run through one Discord Gateway client in this `BotLinking` folder. Upload this folder only; do not run a second copy of the old `LinkingBot` worker.

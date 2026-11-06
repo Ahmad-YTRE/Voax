@@ -205,3 +205,173 @@
 .invite-preview-card-v2 .invite-preview-content{padding:13px}
 .server-icon.explore-rail-button{border:1px solid rgba(96,190,196,.28);color:#80d8d0}
 .server-icon.explore-rail-button:hover{background:rgba(65,181,179,.16);color:#b6fff1}
+
+/* Explore card loading placeholders mirror the final listing-card layout. */
+.discovery-skeleton-grid { align-items:stretch; }
+.discovery-card-skeleton { overflow:hidden;pointer-events:none; }
+.discovery-skeleton-banner { display:block;background:var(--surface,#101722); }
+.discovery-skeleton-banner>span { width:100%;height:100%;border-radius:0; }
+.discovery-card-skeleton .discovery-card-body { display:grid;align-content:start;gap:13px; }
+.discovery-card-skeleton .discovery-card-heading { min-width:0; }
+.discovery-card-skeleton .discovery-avatar { flex:0 0 42px;width:42px;height:42px;border-radius:13px; }
+.discovery-card-skeleton .skeleton-title-line { width:124px;max-width:100%;height:11px; }
+.discovery-card-skeleton .skeleton-meta-line { width:92px;height:7px;margin-top:8px; }
+.discovery-card-skeleton .skeleton-description-line { width:96%;height:8px; }
+.discovery-card-skeleton .skeleton-description-line.short { width:63%; }
+.discovery-card-skeleton .discovery-card-meta { display:flex;gap:10px; }
+.discovery-card-skeleton .skeleton-meta-pill { width:88px;height:8px; }
+.discovery-card-skeleton .skeleton-meta-pill:last-child { width:72px; }
+.discovery-card-skeleton .discovery-card-actions { display:flex;gap:9px;margin-top:2px; }
+.discovery-card-skeleton .skeleton-action { height:34px;flex:1;border-radius:8px; }
+:root[data-theme="light"] .discovery-card-skeleton { background:#fff;border-color:#d8e1eb; }
+:root[data-theme="light"] .discovery-skeleton-banner { background:#edf2f8; }
+@media(max-width:620px) { .discovery-skeleton-grid { grid-template-columns:minmax(0,1fr); } }
+
+
+/* Complete Explore light-theme coverage: live search, filters, and server listings. */
+:root[data-theme="light"] .discovery-shell {
+  background: #f5f7fb;
+  color: #172033;
+}
+:root[data-theme="light"] .discovery-header h1,
+:root[data-theme="light"] .discovery-toolbar h2,
+:root[data-theme="light"] .discovery-card-title h3,
+:root[data-theme="light"] .discovery-detail-head h1,
+:root[data-theme="light"] .discovery-detail-panel h2,
+:root[data-theme="light"] .discovery-empty h2,
+:root[data-theme="light"] .discovery-form-heading h2 {
+  color: #172033;
+}
+:root[data-theme="light"] .discovery-header p,
+:root[data-theme="light"] .discovery-toolbar > div:first-child span,
+:root[data-theme="light"] .discovery-card-title span,
+:root[data-theme="light"] .discovery-card-body > p,
+:root[data-theme="light"] .discovery-card-meta,
+:root[data-theme="light"] .discovery-detail-head p,
+:root[data-theme="light"] .discovery-full-description,
+:root[data-theme="light"] .discovery-stats > span:not(.discovery-eyebrow) {
+  color: #526174;
+}
+:root[data-theme="light"] .discovery-search {
+  background: #fff;
+  border-color: #d5dee8;
+  color: #64748b;
+  box-shadow: 0 1px 2px rgba(23, 32, 51, .04);
+}
+:root[data-theme="light"] .discovery-search input {
+  color: #172033;
+}
+:root[data-theme="light"] .discovery-search input::placeholder,
+:root[data-theme="light"] .discovery-search kbd {
+  color: #78869a;
+}
+:root[data-theme="light"] .discovery-search kbd {
+  border-color: #d5dee8;
+}
+:root[data-theme="light"] .discovery-categories button,
+:root[data-theme="light"] .discovery-sort button {
+  background: #fff;
+  border-color: #d5dee8;
+  color: #526174;
+}
+:root[data-theme="light"] .discovery-categories button:hover,
+:root[data-theme="light"] .discovery-sort button:hover {
+  background: #f1f5f9;
+  border-color: #b8c6d6;
+  color: #172033;
+}
+:root[data-theme="light"] .discovery-categories button.active,
+:root[data-theme="light"] .discovery-sort button.active {
+  background: #e4f5f4;
+  border-color: #8acbc5;
+  color: #126b68;
+}
+:root[data-theme="light"] .discovery-card {
+  background: #fff;
+  border-color: #dce4ed;
+  box-shadow: 0 2px 8px rgba(23, 32, 51, .045);
+}
+:root[data-theme="light"] .discovery-card:hover {
+  border-color: #b8c9d8;
+  box-shadow: 0 12px 28px rgba(23, 32, 51, .09);
+}
+:root[data-theme="light"] .discovery-card-meta {
+  border-bottom-color: #e6ebf1;
+}
+:root[data-theme="light"] .discovery-secondary {
+  background: #f1f5f9;
+  border-color: #d5dee8;
+  color: #334155;
+}
+:root[data-theme="light"] .discovery-secondary:hover {
+  background: #e8eef5;
+  border-color: #bdcbd9;
+}
+:root[data-theme="light"] .discovery-back {
+  color: #526174;
+}
+:root[data-theme="light"] .discovery-back:hover {
+  color: #172033;
+}
+:root[data-theme="light"] .discovery-detail-panel,
+:root[data-theme="light"] .discovery-manage-list,
+:root[data-theme="light"] .discovery-form {
+  background: #fff;
+  border-color: #dce4ed;
+}
+:root[data-theme="light"] .discovery-tags span {
+  background: #eef4f8;
+  border-color: #d7e2eb;
+  color: #40566c;
+}
+:root[data-theme="light"] .discovery-modal {
+  background: #fff;
+  border-color: #d5dee8;
+  color: #172033;
+  box-shadow: 0 25px 90px rgba(23, 32, 51, .2);
+}
+:root[data-theme="light"] .discovery-modal p,
+:root[data-theme="light"] .discovery-form-heading p {
+  color: #64748b;
+}
+:root[data-theme="light"] .discovery-modal label,
+:root[data-theme="light"] .discovery-form > label,
+:root[data-theme="light"] .discovery-form-row label {
+  color: #334155;
+}
+:root[data-theme="light"] .discovery-modal label select,
+:root[data-theme="light"] .discovery-modal label textarea,
+:root[data-theme="light"] .discovery-form input,
+:root[data-theme="light"] .discovery-form textarea,
+:root[data-theme="light"] .discovery-form select {
+  background: #fff;
+  border-color: #d5dee8;
+  color: #172033;
+}
+:root[data-theme="light"] .discovery-form > label > span,
+:root[data-theme="light"] .discovery-form-row label > span {
+  color: #64748b;
+}
+:root[data-theme="light"] .discovery-manage-list button {
+  color: #475569;
+}
+:root[data-theme="light"] .discovery-manage-list button.active,
+:root[data-theme="light"] .discovery-manage-list button:hover {
+  background: #edf3f8;
+  color: #172033;
+}
+:root[data-theme="light"] .discovery-toggle {
+  background: #f8fafc;
+  border-color: #dce4ed;
+}
+:root[data-theme="light"] .discovery-toggle small,
+:root[data-theme="light"] .discovery-form-note {
+  color: #64748b;
+}
+:root[data-theme="light"] .discovery-empty,
+:root[data-theme="light"] .discovery-loading {
+  color: #64748b;
+}
+:root[data-theme="light"] .discovery-empty h2 {
+  color: #172033;
+}

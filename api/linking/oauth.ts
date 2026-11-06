@@ -93,6 +93,54 @@ export default async function handler(req:any,res:any){
    const {data,error}=await admin.from("discord_channel_links").insert({integration_id:integration.id,voax_server_id:serverId,voax_channel_id:voaxChannelId,discord_channel_id:dc.id,discord_channel_name:dc.name,discord_channel_type:dc.type===5?"announcement":"text",is_private:isPrivate,privacy_confirmed_at:isPrivate?new Date().toISOString():null}).select("id").single();if(error)throw error;return reply(res,200,{id:data.id});
   }
   if(action==="reconnect-link"&&req.method==="POST"){const {serverId,linkId}=req.body||{};if(!(await canManage(String(serverId),user.id)))return reply(res,403,{error:"Manage Integrations permission is required."});const {data:link}=await admin.from("discord_channel_links").select("discord_channel_id,integration:discord_integrations!inner(discord_guild_id)").eq("id",linkId).eq("voax_server_id",serverId).maybeSingle();if(!link)return reply(res,404,{error:"Channel link not found."});const guildId=(link.integration as any).discord_guild_id;await discord("/guilds/"+guildId);await discord("/channels/"+link.discord_channel_id);const {error}=await admin.from("discord_channel_links").update({status:"active",last_error:null}).eq("id",linkId);if(error)throw error;await admin.from("discord_sync_outbox").update({status:"pending",attempts:0,available_at:new Date().toISOString(),locked_at:null,last_error:null}).eq("channel_link_id",linkId).in("status",["failed","dead"]);await admin.from("discord_integrations").update({status:"connected",last_error:null}).eq("discord_guild_id",guildId);return reply(res,200,{ok:true});}
+  if(action==="welcome-settings"&&req.method==="POST"){
+   const {serverId,linkId}=req.body||{};
+   if(!serverId||!linkId||!(await canManage(String(serverId),user.id)))return reply(res,403,{error:"Manage Integrations permission is required."});
+   const discordStickerId=String(req.body?.discordWelcomeStickerId||"").trim();
+   const voaxStickerUrl=String(req.body?.voaxWelcomeStickerUrl||"").trim();
+   const discordTemplate=String(req.body?.discordWelcomeMessageTemplate||req.body?.welcomeMessageTemplate||"Welcome {user} to {server}!").trim();
+   const voaxTemplate=String(req.body?.voaxWelcomeMessageTemplate||req.body?.welcomeMessageTemplate||"Welcome {user} to {server}!").trim();
+   if(discordStickerId&&!/^\d{17,20}$/.test(discordStickerId))return reply(res,400,{error:"Enter a valid Discord sticker ID."});
+   if(voaxStickerUrl){
+    try{const parsed=new URL(voaxStickerUrl);if(parsed.protocol!=="https:"||parsed.username||parsed.password)throw new Error();}
+    catch{return reply(res,400,{error:"The Voax sticker must be a valid public HTTPS image or GIF URL."});}
+   }
+   if(discordTemplate.length<1||discordTemplate.length>500||voaxTemplate.length<1||voaxTemplate.length>500)return reply(res,400,{error:"Each welcome message template must be 1–500 characters."});
+   const {data,error}=await admin.from("discord_channel_links").update({
+    welcome_discord_enabled:Boolean(req.body?.welcomeDiscordEnabled),
+    welcome_voax_enabled:Boolean(req.body?.welcomeVoaxEnabled),
+    discord_welcome_sticker_id:discordStickerId||null,
+    voax_welcome_sticker_url:voaxStickerUrl||null,
+    welcome_message_template:discordTemplate,
+    discord_welcome_message_template:discordTemplate,
+    voax_welcome_message_template:voaxTemplate
+   }).eq("id",linkId).eq("voax_server_id",serverId).select("id").maybeSingle();
+   if(error)throw error;if(!data)return reply(res,404,{error:"Channel link not found."});
+   return reply(res,200,{ok:true});
+  }
+  if(action==="welcome-click"&&req.method==="POST"){
+   const eventId=String(req.body?.eventId||"");
+   const {data:event,error:eventError}=await admin.from("discord_welcome_events")
+    .select("id,channel_link_id,status,voax_message_id,discord_message_id,channel_link:discord_channel_links!inner(id,voax_server_id,discord_welcome_sticker_id,voax_welcome_sticker_url)")
+    .eq("id",eventId).maybeSingle();
+   if(eventError)throw eventError;
+   if(!event||!event.voax_message_id||!event.discord_message_id)return reply(res,404,{error:"This welcome message is no longer available."});
+   const link=Array.isArray(event.channel_link)?event.channel_link[0]:event.channel_link;
+   if(!link||!link.discord_welcome_sticker_id||!link.voax_welcome_sticker_url)return reply(res,400,{error:"Welcome stickers have not been configured for both platforms."});
+   const {data:member,error:memberError}=await admin.from("server_members").select("user_id").eq("server_id",link.voax_server_id).eq("user_id",user.id).maybeSingle();
+   if(memberError)throw memberError;if(!member)return reply(res,403,{error:"You must be a member of this Voax server to send its welcome sticker."});
+   const {data:profile}=await admin.from("profiles").select("username").eq("id",user.id).maybeSingle();
+   const idempotencyKey="voax:"+eventId+":"+user.id;
+   const {error:insertError}=await admin.from("discord_welcome_actions").upsert({
+    welcome_event_id:eventId,source_platform:"voax",idempotency_key:idempotencyKey,
+    actor_voax_user_id:user.id,actor_name:profile?.username||"Voax member",
+    sticker_id:link.discord_welcome_sticker_id,sticker_url:link.voax_welcome_sticker_url
+   },{onConflict:"idempotency_key",ignoreDuplicates:true});
+   if(insertError)throw insertError;
+   const {data:action,error:actionError}=await admin.from("discord_welcome_actions").select("id,status").eq("idempotency_key",idempotencyKey).single();
+   if(actionError)throw actionError;
+   return reply(res,200,{ok:true,actionId:action.id,status:action.status});
+  }
   if(action==="disconnect-link"&&req.method==="POST"){
    const {serverId,linkId}=req.body||{};if(!(await canManage(String(serverId),user.id)))return reply(res,403,{error:"Manage Integrations permission is required."});const {error}=await admin.from("discord_channel_links").update({status:"disconnected"}).eq("id",linkId).eq("voax_server_id",serverId);if(error)throw error;return reply(res,200,{ok:true});
   }
