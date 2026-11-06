@@ -20,6 +20,8 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 
 export function attachWelcomeHandlers(client) {
   const pollInterval = Math.max(750, Number(process.env.POLL_INTERVAL_MS || 1500));
+  const maxIdlePollInterval = Math.max(pollInterval, 5000);
+  let idlePollInterval = pollInterval;
   let queueBusy = false;
   let queueTimer;
 
@@ -285,18 +287,25 @@ async function processQueues() {
     ]);
     if (eventsResult.error) throw eventsResult.error;
     if (actionsResult.error) throw actionsResult.error;
-    for (const event of eventsResult.data || []) {
+    const events = eventsResult.data || [];
+    const actions = actionsResult.data || [];
+    for (const event of events) {
       try { await processWelcomeEvent(event); }
       catch (error) { logError(`welcome event ${event.id}`, error); await markFailed("discord_welcome_events", event, error); }
     }
-    for (const action of actionsResult.data || []) {
+    for (const action of actions) {
       try { await processWelcomeAction(action); }
       catch (error) { logError(`welcome action ${action.id}`, error); await markFailed("discord_welcome_actions", action, error); }
     }
+    idlePollInterval = events.length || actions.length
+      ? pollInterval
+      : Math.min(maxIdlePollInterval, Math.max(pollInterval, idlePollInterval * 2));
   } catch (error) {
     logError("queue poll", error);
+    idlePollInterval = Math.min(maxIdlePollInterval, Math.max(pollInterval, idlePollInterval * 2));
   } finally {
     queueBusy = false;
+    queueTimer = setTimeout(() => void processQueues(), idlePollInterval);
   }
 }
 
@@ -466,9 +475,9 @@ client.on(Events.InteractionCreate, interaction => {
 client.once(Events.ClientReady, readyClient => {
   console.log(`[Voax Linking] Welcome queues active for ${readyClient.user.tag}`);
   void processQueues();
-  queueTimer = setInterval(() => void processQueues(), pollInterval);
+  // The queue reschedules itself with idle backoff; busy queues retain the base cadence.
 });
-  return () => { if (queueTimer) clearInterval(queueTimer); };
+  return () => { if (queueTimer) clearTimeout(queueTimer); };
 }
 
 
